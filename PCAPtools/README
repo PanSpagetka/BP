@@ -1,0 +1,4 @@
+-i input file, must be in format which can be read by pcap library, supports only ethernet encapsulation
+-s strip packet payload, leave only packet headers (Ethernet, IP, TCP/UDP)
+-o output file, will be written in PCAP format
+-f filter (similar to tcpdump filters)

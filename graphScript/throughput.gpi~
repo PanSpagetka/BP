@@ -1,0 +1,34 @@
+set terminal postscript eps enhanced color "Times" 30
+set output "throughput.eps"
+set title "Throughput Graph"
+
+set style line 99 linetype 1 linecolor rgb "#999999" lw 2
+set key outside bottom center
+
+set grid xtics ytics mytics
+
+#set xrange [1:60]
+#set format y "%.0f"
+set datafile separator "|"
+set xdata time
+set timefmt "%Y-%m-%d %H:%M:%S"
+set format x "%H:%M:%S"
+
+set size 2
+set size ratio 0.4
+
+set ylabel "Data [byte/s]"
+set xlabel "Time [seconds]" offset 0, -5 
+
+
+set xtics rotate by 90 offset -0.8,-3.5
+set xtics 
+
+set style line 1 lc rgb '#00004d' lt 1 lw 3
+
+# grayscale
+#set style line 1 lc rgb '#000' lt 1 pi 0 pt 6 lw 8 ps 4
+
+#plot \
+#  "throughput.data" using 2:4  every ::13 with lines ls 1 title 'throughput.data', \
+#"data" using 2:4  every ::13 with lines ls 1 lc rgb 'gold' title 'data'
