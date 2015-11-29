@@ -21,7 +21,7 @@ if form.has_key('actions'):
     actions = form['actions'].value.split(':')
 caseName = form['caseName'].value if form.has_key('caseName') else ""
 fileName = os.path.basename(form['filePath'].value) if form.has_key('filePath') else ""
-
+syslog.syslog("PCAP APP: main started ")
 # ---------------ACTIONS-------------------
 # begining of action section, here are executed all actions
 if "addCase" in actions:
@@ -58,10 +58,12 @@ if "applyFilter" in actions:
 
 
 if "uploadFile" in actions:
+    syslog.syslog("PCAP APP: upload file started ")
     if form.has_key('caseName') and form.has_key('uploadFileItem'):
         ret = saveFile.saveFile(form['caseName'].value, form['uploadFileItem'])
         message = ret[0]
         messageType = ret[1]
+
     else:
         message = "You have to choose a file."
 
@@ -71,17 +73,11 @@ if "deleteFile" in actions:
         pagesToRender = ['case','saveFile']
         message = "<strong>Success!</strong> All temporary files was deleted."
         messageType = "success"
-
+syslog.syslog("PCAP APP: actions done ")
 # generate begining of html
 print "Content-Type: text/html\n\n"
-# generate JS which bootstrap need to work
-print genBootstrapJS()
 print genBegining('Main')
-'''
-for i in form.keys():
-    print i + ": " + form[i].value + "  "
-print '<br>'
-'''
+
 
 # begining of render section
 print '<div class="alert alert-'+messageType+'">'+message+'</div>' if message else ""
@@ -103,9 +99,11 @@ if "cases" in pagesToRender:
 
 if "case" in pagesToRender:
     showCase.render(form['caseName'].value)
+    syslog.syslog("PCAP APP: case rendered")
 
 if "saveFile" in pagesToRender:
     saveFile.render(form['caseName'].value)
+    syslog.syslog("PCAP APP: savefile rendered")
 
 if "showFile" in pagesToRender:
     if form.has_key('filePath'):
@@ -132,7 +130,7 @@ if "showGraph" in pagesToRender:
     # print '<img width="400" src="renderGraph.py?fileName='+form['filePath'].value+'">'
     # print '<img width="400" src="cases/case01/PCAPs/tmp/throughput.png">'
 
-
+syslog.syslog("PCAP APP: alll rendered")
 #  generate back button
 print '<div class="col-md-12">'
 print genBackButton(pagesToRender, form['caseName'].value) if form.has_key("caseName") else genBackButton(pagesToRender)
@@ -141,3 +139,4 @@ print '</div>\n</div>'
 
 # generate end of html
 print genEnd()
+syslog.syslog("PCAP APP: end of main")

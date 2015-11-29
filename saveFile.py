@@ -16,8 +16,8 @@ def printUploadFileForm(caseName):
     formStr += '<div class="form-group">'
     formStr += '<p>File: <input type="file" name="uploadFileItem"></p>'
     formStr += '<p><input type="submit" class="btn btn-default" value="Upload"></p></div></form>'
+    formStr += '</div>'
     print formStr
-    print '</div>'
 
 def checkIfFileIsPCAP(filePath):
     ext = filePath.split('.')
@@ -101,6 +101,7 @@ def addFile(caseName, filePath):
 def saveFile(caseName, fileItem):
     if not fileItem.filename:
         return ("No file selected.", 'danger')
+    syslog.syslog("PCAP APP: upload file started ")
     fileName = os.path.basename(fileItem.filename)
     filePath = CASES_DIR + caseName + ORIGIN_DIR + fileName
     dirPath = CASES_DIR + caseName + PCAP_DIR + ORIGIN_DIR

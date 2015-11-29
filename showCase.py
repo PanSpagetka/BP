@@ -7,6 +7,7 @@ def loadCase(caseName):
     cases = Case.loadFromDB(DATABASE, mode = 'dic')
     if(caseName in cases):
         case = cases[caseName]
+        syslog.syslog("PCAP APP: loadCase sucesfull "+str(datetime.datetime.now()))
         return case
 
 def loadAllFiles(caseName = '*'):
@@ -170,6 +171,7 @@ def printFilterForm(case):
     #print '<script>$(document).ready(function() {$("#originFiles").DataTable();} );</script>'
 
 def render(caseName):
+    syslog.syslog("PCAP APP: render case start "+str(datetime.datetime.now()))
     checkOriginFilesConsistency(caseName)
     checkFilteredFileConsistency(caseName)
     case = loadCase(caseName)
@@ -180,6 +182,7 @@ def render(caseName):
         #printCase(case)
         printFilterForm(case)
         printPCAPs(case)
+        syslog.syslog("PCAP APP: case sucesfull "+str(datetime.datetime.now()))
         #printUploadFileForm(case)
         #printClearTmpButton(caseName)
 

@@ -2,7 +2,8 @@ from math import log
 from config import *
 import os, sqlite3, SQLHelper, subprocess, syslog, datetime
 from os.path import isfile, join
-unit_list = zip(['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
+unit_list = zip(['B', 'KB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
+MONTHS = {'jan': '01','feb': '02','mar': '03','apr':'04','may':'05','jun':'06','jul':'07','aug':'08','sep':'09','oct':'10','nov':'11','dec':'12'}
 
 def readableSizeOfFile(filePath):
     num = os.path.getsize(filePath)
@@ -38,9 +39,9 @@ def sizeof_fmt(num):
         format_string = '{:.%sf} {}' % (num_decimals)
         return format_string.format(quotient, unit)
     if num == 0:
-        return '0 bytes'
+        return '0 B'
     if num == 1:
-        return '1 byte'
+        return '1 B'
 
 def removeFilesFromFolder(folder):
     files = [ f for f in os.listdir(folder) if isfile(join(folder,f)) ]
@@ -112,13 +113,30 @@ def getStartDateTimeFromFile(filePath):
     r = subprocess.check_output(['capinfos','-a',filePath])
     r = r.split('\n')
     r = r[1].split('time:')
-    return r[1].lstrip()
+    dt = r[1].lstrip().replace("  ", " ")
+    if dt == 'n/a':
+        return dt
+    dt = dt.split(' ')
+    month = MONTHS[dt[1].lower()]
+    day = dt[2] if int(dt[2]) > 9 else '0'+dt[2]
+    time = dt[3]
+    year = dt[4]
+    return "%s-%s-%s %s" % (year, month,day,time)
 
 def getEndDateTimeFromFile(filePath):
     r = subprocess.check_output(['capinfos','-e',filePath])
     r = r.split('\n')
     r = r[1].split('time:')
-    return r[1].lstrip()
+    dt = r[1].lstrip().replace("  ", " ")
+    if dt == 'n/a':
+        return dt
+    dt = dt.split(' ')
+    month = MONTHS[dt[1].lower()]
+    print dt[2]
+    day = dt[2] if int(dt[2]) > 9 else '0'+dt[2]
+    time = dt[3]
+    year = dt[4]
+    return "%s-%s-%s %s" % (year, month,day,time)
 
 # return tuple of (first packet datetime, last packet datetime)
 def getDateTimeFromFile(filePath):
@@ -133,8 +151,9 @@ def getDateTimeFromFile(filePath):
 def getReadableFileInfo(fileName, caseName):
     fileID = SQLHelper.getFileID(fileName, caseName)
     info = SQLHelper.getFileInfo(fileID)
+    s = sizeof_fmt(info[1]).replace(" ", "")
     if info[0] is None:
-        return ["None",sizeof_fmt(info[1]), info[2], info[3], info[4]]
+        return ["None",s, info[2], info[3], info[4]]
 
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
@@ -142,7 +161,7 @@ def getReadableFileInfo(fileName, caseName):
     filterContent = q.fetchone()[0]
     conn.commit()
     conn.close()
-    return [filterContent, sizeof_fmt(info[1]), info[2], info[3], info[4]]
+    return [filterContent, s, info[2], info[3], info[4]]
 
 
 def getDBNameFromPath(filePath):
@@ -157,7 +176,10 @@ def updateFile(filePath, caseName, filterID):
     fileSize = os.path.getsize(filePath)
     fileID = SQLHelper.getFileID(fileName, caseName)
     if fileID:
+        syslog.syslog("PCAP APP: upload file fileid == true ")
         SQLHelper.updateFileInfo(fileID, filterID, fileSize, dateTimes)
+        syslog.syslog("PCAP APP: upload file fileid == true end ")
+
     else:
         conn = sqlite3.connect(DATABASE)
         q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = ?",(caseName,))

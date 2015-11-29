@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3, syslog
 from config import *
 
 def getCaseID(caseName):
@@ -45,15 +45,23 @@ def loadAllFiles(caseName = '*'):
     return files
 
 def updateFileInfo(fileID, filterID = None, size = None, dateTimes = None):
-
     conn = sqlite3.connect(DATABASE)
-    #conn.execute('pragma foreign_keys=ON')
+    conn.execute('pragma foreign_keys=ON')
     '''dbStr = ""
     dbStr += "FILTERID = " + str(filterID) + ", " if filterID else ""
     dbStr += "SIZE = " + str(size)  + ", "if size else ""
     dbStr += "FIRST_PACKET_DATETIME = \'" + str(dateTimes[0]) + "\', LAST_PACKET_DATETIME = \'"+ str(dateTimes[1]) + "\', " if dateTimes else ""
     dbStr = dbStr[:-2]'''
-    q = conn.execute("UPDATE FILES SET FILTERID = ?, SIZE = ?, FIRST_PACKET_DATETIME = ?, LAST_PACKET_DATETIME = ? WHERE FILES.ID = ?", (filterID, size, dateTimes[0], dateTimes[1], fileID,))
+
+
+    if filterID != 'null':
+        syslog.syslog("PCAP APP: SQL update  file null")
+        q = conn.execute("UPDATE FILES SET FILTERID = ?, SIZE = ?, FIRST_PACKET_DATETIME = ?, LAST_PACKET_DATETIME = ? WHERE FILES.ID = ?", (filterID, size, dateTimes[0], dateTimes[1], fileID,))
+        syslog.syslog("PCAP APP: SQL update  file null done")
+    else:
+        syslog.syslog("PCAP APP: SQL update  file not null")
+        q = conn.execute("UPDATE FILES SET SIZE = ?, FIRST_PACKET_DATETIME = ?, LAST_PACKET_DATETIME = ? WHERE FILES.ID = ?", (size, dateTimes[0], dateTimes[1], fileID,))
+    syslog.syslog("PCAP APP: SQL update  file")
     conn.commit()
     conn.close()
 

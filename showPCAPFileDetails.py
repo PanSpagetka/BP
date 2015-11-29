@@ -14,7 +14,6 @@ def generateFilesAproximateTimeString(files, caseName):
     return s
 
 def printInputFilterForm(filePath, caseName):
-    info = helper.getReadableFileInfo(helper.getDBNameFromPath(filePath), caseName)
     approximateTime = helper.getRenderGraphTime(os.path.getsize(filePath))
     title = 'Approximate time to render graph is: ' + helper.getReadableTimeInfo(approximateTime)
     originFiles = SQLHelper.loadFiles(caseName, 'origin')
@@ -25,6 +24,7 @@ def printInputFilterForm(filePath, caseName):
     filesApproxStr += generateFilesAproximateTimeString(tmpFiles, caseName)
     options = '<optgroup label="Original files">'
     for file in originFiles:
+        info = helper.getReadableFileInfo(helper.getDBNameFromPath(filePath), caseName)
         options += '  <option value="'+file+'">'+file+'</option>'
     options += '</optgroup>'
     options += '<option data-divider="true"></option>'
@@ -37,6 +37,15 @@ def printInputFilterForm(filePath, caseName):
     for file in tmpFiles:
         options += '  <option value="'+file+'">'+file+'</option>'
     options += '</optgroup>'
+    allFiles = originFiles + filteredFiles + tmpFiles
+    table = '<table id="example" class="display" cellspacing="0" width="100%">'
+    table += '<thead><tr><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th></tr><tbody>'
+    for file in allFiles:
+        info = helper.getReadableFileInfo(file, caseName)
+        table += '<tr><th><div class="checkbox"><label><input type="checkbox" value="%s"><b>%s</b></label></div></th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (file, file, info[1], info[2], info[3], info[0], info[4])
+    table += '</tbody></table>'
+    print table
+    info = helper.getReadableFileInfo(helper.getDBNameFromPath(filePath), caseName)
     print '<h2>Edit filter on file:</h2>'
     formStr = '<form action="main.py" class="form-horizontal" method="post">'
     formStr += '<div class="form-group"><label class="col-md-2">Current filter on File:</label>'
@@ -69,55 +78,13 @@ def printInputFilterForm(filePath, caseName):
     print formStr
     print '<hr/>'
 
+    #print "<script>$(document).ready(function() {"
+    #print "$('#example').DataTable();"
+    #print "} );</script>"
+
+
     #print '<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="70"aria-valuemin="0" aria-valuemax="100" style="width:70%"><spanclass="sr-only">70% Complete</span></div></div>'
     print htmlGen.generateProgresBar()
-    script = '<script>'
-    script += "function getSelectValues(select) {"
-    script += "  var result = [];"
-    script += "  var options = select && select.options;"
-    script += "  var opt;"
-    script += "  for (var i=0, iLen=options.length; i<iLen; i++) {"
-    script += "    opt = options[i];"
-    script += "    if (opt.selected) {"
-    script += "      result.push(opt.value || opt.text);"
-    script += "    }"
-    script += "  }"
-    script += "  return result;"
-    script += "}"
-
-    script += 'function toHHMMSS(n) {'
-    script += "    var sep = ':',"
-    script += '        n = parseFloat(n),'
-    script += '        hh = parseInt(n / 3600);'
-    script += '    n %= 3600;'
-    script += '    var mm = parseInt(n / 60),'
-    script += '        ss = parseInt(n % 60);'
-    script += "    return pad(hh,2)+sep+pad(mm,2)+sep+pad(ss,2);"
-    script += '    function pad(num, size) {'
-    script += '        var str = num + "";'
-    script += '        while (str.length < size) str = "0" + str;'
-    script += '        return str;'
-    script += '    }'
-    script += '}'
-
-    script += "function getSumTime(arg, baseTime) {"
-    script += '    var selectedValues = getSelectValues(document.getElementById("additionalFiles"));'
-    script += "    var b = arg.split(';');"
-    script += "    var files = {};"
-    script += "    var sum = baseTime;"
-    script += "    for(i = 0; i < b.length; i++){"
-    script += "     pom = b[i].split(':');"
-    script += "     files[pom[0]] = pom[1];"
-    script += "    }"
-    script += "    for(i = 0; i < selectedValues.length; i++)"
-    script += "    {"
-    script += "        sum = eval('sum + parseInt(files[selectedValues[i]])');"
-    script += "    }"
-    script += "    document.getElementById(\"renderGraph\").title = 'Approximate time to render graph is: ' + toHHMMSS(sum);"
-    script += "    document.getElementById(\"renderDetailedGraph\").title = 'Approximate time to render graph is: ' + toHHMMSS(sum);"
-    script += "    return sum;"
-    script += "}"
-    script += "</script>"
     #print script
     #print '<script>document.getElementById("progress-bar").style.width = "100px";</script>'
     #print '<form method="post">New filter:<br><textarea name="filter"></textarea><br><br><input type="hidden" name="fileName" value="'+filePath+'"><input type="hidden" name="caseName" value="'+caseName+'"><input type="submit" value="Render Graph"></a></form> '
