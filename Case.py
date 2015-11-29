@@ -1,6 +1,5 @@
 import os, sys, shutil, sqlite3
-from Error import *
-from CONSTANTS import *
+from config import *
 
 
 class Case:
@@ -39,9 +38,6 @@ def loadFromFile(fileName, mode = 'list'):
         parts = line.split(';')
         if len(parts) == 2:
             cases.append(Case(parts[0], parts[1]))
-        else:
-            e = Error("Corrupted Cases.db file")
-            e.raiseError()
         file.close()
     # load as a dictionary
     else:
@@ -51,9 +47,6 @@ def loadFromFile(fileName, mode = 'list'):
             parts = line.split(';')
             if len(parts) == 2:
                 cases[parts[0]] = Case(parts[0], parts[1])
-            else:
-                e = Error("Corrupted Cases.db file")
-                e.raiseError()
         file.close()
     return cases
 
@@ -62,10 +55,10 @@ def addCase(caseName, description):
     # add to db
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
-    conn.execute("INSERT INTO FILTERS VALUES(null, \'\')")
+    conn.execute("INSERT INTO FILTERS VALUES(null, \'\', \'\', \'\')")
     q = conn.execute('SELECT max(ID) FROM FILTERS')
     filterID = q.fetchone()[0]
-    conn.execute("INSERT INTO CASES VALUES (null,\'"+caseName+"\',\'"+description+"\',"+str(filterID)+")")
+    conn.execute("INSERT INTO CASES VALUES (null,?,?,?)",(caseName, description, filterID, ))
 
     conn.commit()
     conn.close()
@@ -83,7 +76,7 @@ def addCase(caseName, description):
 
 '''
 def addCase(caseName, description):
-	""" add case to DB and create case directory with description file in CASES_DIR directory defined in CONSTANTS.py
+	""" add case to DB and create case directory with description file in CASES_DIR directory defined in config.py
 
 		Keyword arguments:
 	   	 	caseName -- name of case which will be added

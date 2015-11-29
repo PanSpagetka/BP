@@ -52,22 +52,10 @@ def genBreadcrumb(pagesToRender, caseName = None, fileName = None):
 	return breadcrumb
 
 def genBootstrapJS():
-	return '<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script><script src="bootstrap/js/bootstrap.min.js"></script><script src="bootstrap/bootstrap-table.js"></script> <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>'
+	return '<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script><script src="bootstrap/js/bootstrap.min.js"></script><script src="bootstrap/bootstrap-table.js"></script> <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script><script src="js/script.js"></script>'
 
 def generateProgresBar():
     script = '<div class="col-md-12"><div name="progres-div" class="progress col-md-6" style="display:none"><div id="progress-bar" class="progress-bar" role="progressbar" style="width:0%"></div></div></div>'
-    script +=  '<script> function setWidth(total, start){'
-    script += 'var d = new Date();'
-    script += 'var n = d.getTime();'
-    script += 'current = eval( (n - start) / 1000);console.log(current);'
-    script += 'proc = String(eval(100*current/total));'
-    script += 'document.getElementById("progress-bar").style.width = proc.concat("%");}'
-    script += 'function startProgresBar(seconds){'
-    script += 'var d = new Date();'
-    script += 'var n = d.getTime();'
-    script += 'document.getElementsByName("progres-div")[0].removeAttribute("style");'
-    script += 'setInterval(setWidth, 1000, seconds, n);'
-    script += '}</script>'
     return script
 if __name__ == '__main__':
 	printHead("test")

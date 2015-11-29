@@ -1,6 +1,6 @@
 
 import os, os.path, subprocess, sys, syslog, datetime, shutil, Filter
-from CONSTANTS import *
+from config import *
 
 #form = cgi.FieldStorage()
 def render(caseName, filePath, additionalFiles = [], type = 'png', start = '', end = '', xtics = ''):
@@ -111,7 +111,7 @@ import cgi
 import cgitb
 import os, os.path, subprocess
 from htmlGen import *
-from CONSTANTS import *
+from config import *
 cgitb.enable()
 
 form = cgi.FieldStorage()

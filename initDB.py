@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
-import sqlite3
+import sqlite3, os
+from config import DATABASE
 
-conn = sqlite3.connect('DB/test.db')
+os.remove(DATABASE)
+conn = sqlite3.connect(DATABASE)
 print "Opened database successfully";
 
 conn.execute('pragma foreign_keys=ON')
@@ -32,7 +34,9 @@ conn.execute('''CREATE TABLE FILES
 
 conn.execute('''CREATE TABLE FILTERS
             (ID INTEGER PRIMARY KEY,
-            CONTENT         TEXT    NOT NULL);''')
+            CONTENT         TEXT    NOT NULL,
+            START_DATETIME TEXT,
+            END_DATETIME TEXT);''')
 
 conn.execute('''CREATE TABLE USERCASE
             (USERID INT,

@@ -1,7 +1,7 @@
 import cgi
 import cgitb, os, Case, SQLHelper, helper, htmlGen, sqlite3, syslog
 from htmlGen import *
-from CONSTANTS import *
+from config import *
 
 # load cases from file
 def loadCases():
@@ -12,7 +12,7 @@ def loadCases():
 def addCase(caseName, caseDescription):
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
-    q = conn.execute('SELECT ID FROM CASES WHERE NAME == \"'+caseName+'\"')
+    q = conn.execute('SELECT ID FROM CASES WHERE NAME == ?',(caseName,))
     exists = q.fetchone()
     conn.close()
     if exists:

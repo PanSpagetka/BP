@@ -1,5 +1,5 @@
 import os, sqlite3, subprocess, datetime, syslog
-from CONSTANTS import *
+from config import *
 from Filter import *
 from htmlGen import *
 
@@ -29,15 +29,15 @@ def removeFile(caseName, filePath):
     fileID = SQLHelper.getFileID(helper.getDBNameFromPath(filePath), caseName)
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
-    q = conn.execute("SELECT FILTERID FROM FILES WHERE ID = "+str(fileID))
+    q = conn.execute("SELECT FILTERID FROM FILES WHERE ID = ?",(fileID,))
     filterID = q.fetchone()[0]
     #remove unused filter
     if filterID is not None:
-        q = conn.execute("SELECT ID FROM FILTERS WHERE ID = "+str(filterID))
-        q2 = conn.execute("SELECT ID FROM CASES WHERE FILTERID = "+str(filterID))
+        q = conn.execute("SELECT ID FROM FILTERS WHERE ID = ?",(filterID,))
+        q2 = conn.execute("SELECT ID FROM CASES WHERE FILTERID = ?",(filterID,))
         if len(q.fetchall()) < 2 and len(q2.fetchall()) < 1:
-            conn.execute("DELETE FROM FILTERS WHERE ID = "+str(filterID))
-    conn.execute("DELETE FROM FILES WHERE ID = "+str(fileID))
+            conn.execute("DELETE FROM FILTERS WHERE ID = ?",(filterID,))
+    conn.execute("DELETE FROM FILES WHERE ID = ?",(fileID,))
     conn.commit()
     conn.close()
 
@@ -51,11 +51,11 @@ def addFile(caseName, filePath):
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
 
-    q = conn.execute("SELECT ID,FILTERID FROM CASES WHERE CASES.NAME = \'"+caseName+"\'")
+    q = conn.execute("SELECT ID,FILTERID FROM CASES WHERE CASES.NAME = ?",(caseName,))
     IDs = q.fetchone()
     caseID = IDs[0]
     filterID  = IDs[1]
-    q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = \'"+str(filterID)+"\'")
+    q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = ?", (filterID,))
     filterContent = q.fetchone()
     # apply filter and save filtered file
     if filterContent and filterContent != '':
@@ -70,13 +70,15 @@ def addFile(caseName, filePath):
             if os.path.isfile(CASES_DIR + caseName + PCAP_DIR + filteredFileName):
                 dateTimes = helper.getDateTimeFromFile(CASES_DIR + caseName + PCAP_DIR + filteredFileName)
                 fileSize = os.path.getsize(CASES_DIR + caseName + PCAP_DIR + filteredFileName)
-                q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\',\'"+sourceFile+"\')")
+                q = conn.execute("INSERT INTO FILES VALUES (null, ?, \'filtered\', ?, ?, ?, ?, ?, ?)", (filteredFileName, caseID, filterID, fileSize, dateTimes[0], dateTimes[1], sourceFile,))
+                #q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\',\'"+sourceFile+"\')")
                 conn.commit()
             else:
                 f = open(CASES_DIR + caseName + PCAP_DIR + filteredFileName, 'w')
                 f.write("")
                 f.close()
-                q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+",0,\'n/a\',\'n/a\',\'"+sourceFile+"\')")
+                q = conn.execute("INSERT INTO FILES VALUES (null, ?,\'filtered\', ?, ?, 0, \'n/a\', \'n/a\', ?)",(filteredFileName, caseID, filterID, sourceFile,))
+                #q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+",0,\'n/a\',\'n/a\',\'"+sourceFile+"\')")
                 conn.commit()
             conn.close()
 
@@ -89,14 +91,13 @@ def addFile(caseName, filePath):
     else:
         conn = sqlite3.connect(DATABASE)
         conn.execute('pragma foreign_keys=ON')
-        conn.execute("INSERT INTO FILES VALUES (null,\'"+"origin/"+fileName+"\',\'origin\',"+str(caseID)+",null"+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+dateTimes[1]+"\',\'n/a\')")
+        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, null, ?, ?, ?, ?)", ("origin/"+fileName, 'origin', caseID, fileSize, dateTimes[0], dateTimes[1], 'n/a',))
+        #conn.execute("INSERT INTO FILES VALUES (null,\'"+"origin/"+fileName+"\',\'origin\',"+str(caseID)+",null"+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+dateTimes[1]+"\',\'n/a\')")
         conn.commit()
         conn.close()
     syslog.syslog("PCAP APP: addFile: "+filePath+"   ended: "+str(datetime.datetime.now()))
     return ("<strong>Success!</strong> File was succesfuly saved.","success")
 
-# roydelit na dve motedy, pridat moznost nahrat soubr primo do slozky, aktualizovat db.
-# pridat logovani, delka trvani delsich metod.
 def saveFile(caseName, fileItem):
     if not fileItem.filename:
         return ("No file selected.", 'danger')
@@ -122,7 +123,7 @@ def render(caseName):
 
 import cgi, os
 import cgitb; cgitb.enable()
-from CONSTANTS import *
+from config import *
 from Filter import *
 from htmlGen import *
 form = cgi.FieldStorage()

@@ -2,9 +2,9 @@
 
 import cgi
 import cgitb, os
-import test2, cases, showCase, showPCAPFileDetails, Filter, renderGraph, saveFile, helper, syslog
+import cases, showCase, showPCAPFileDetails, Filter, renderGraph, saveFile, helper, syslog
 from htmlGen import *
-from CONSTANTS import *
+from config import *
 from subprocess import CalledProcessError
 
 
@@ -34,17 +34,15 @@ if "addCase" in actions:
         messageType = 'warning'
 # when editing filter on case, if filter is empty this action will be skipped
 if 'editFilter' in actions:
-    if form.has_key("filterContent"):
-        if form.has_key("Edit") and form.has_key("filterContent"):
-            Filter.applyFilterOnCase(form['caseName'].value, form['filterContent'].value, mode = "edit")
-            message = "<strong>Success!</strong> Filter was applyed"
-        else:
-            Filter.applyFilterOnCase(form['caseName'].value, form['filterContent'].value, mode = "append")
-
-        messageType = 'success'
+    filterContent = form['filterContent'].value if form.has_key("filterContent") else ''
+    start = form['start'].value if form.has_key('start') else ''
+    end = form['end'].value if form.has_key('end') else ''
+    if form.has_key("Edit"):
+        Filter.applyFilterOnCase(form['caseName'].value, filterContent , mode = "edit", start = start, end = end)
     else:
-        message = "<strong>Info!</strong> You Append/Edit filter with empty content, this action was skipped. If you want to see result of this action check origin files."
-        messageType = "info"
+        Filter.applyFilterOnCase(form['caseName'].value, filterContent, mode = "append", start = start, end = end)
+    message = "<strong>Success!</strong> Filter was applied"
+    messageType = 'success'
 
 # when applying filter on currently selected file, crete new tmp file
 if "applyFilter" in actions:

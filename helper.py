@@ -1,5 +1,5 @@
 from math import log
-from CONSTANTS import *
+from config import *
 import os, sqlite3, SQLHelper, subprocess, syslog, datetime
 from os.path import isfile, join
 unit_list = zip(['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
@@ -51,24 +51,24 @@ def removeFilesFromFolder(folder):
 def getFilter(caseName, fileName = None, type = "case"):
     conn = sqlite3.connect(DATABASE)
     if fileName is None:
-        q = conn.execute("SELECT FILTERID FROM CASES WHERE CASES.NAME = \'"+caseName+"\'")
+        q = conn.execute("SELECT FILTERID FROM CASES WHERE CASES.NAME = ?",(caseName,))
         IDs = q.fetchone()
         filterID  = IDs[0]
 
-        q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = \'"+str(filterID)+"\'")
+        q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = ?",(filterID,))
 
         filterContent = q.fetchone()
         # if filter exist set it to its string value else set it to None
         filterContent = filterContent[0] if filterContent else "None"
     else:
         fileID = SQLHelper.getFileID(fileName, caseName)
-        q = conn.execute("SELECT FILTERID FROM FILES WHERE FILES.ID = \'"+str(fileID)+"\'")
+        q = conn.execute("SELECT FILTERID FROM FILES WHERE FILES.ID = ?", (fileID,))
         IDs = q.fetchone()
         if IDs is None:
             return "None"
         filterID  = IDs[0]
 
-        q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = \'"+str(filterID)+"\'")
+        q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = ?",(filterID,))
 
         filterContent = q.fetchone()
         # if filter exist set it to its string value else set it to None
@@ -76,6 +76,18 @@ def getFilter(caseName, fileName = None, type = "case"):
 
     conn.close()
     return filterContent if filterContent else "None"
+
+def getTimeFilter(caseName):
+    conn = sqlite3.connect(DATABASE)
+    q = conn.execute("SELECT FILTERID FROM CASES WHERE CASES.NAME = ?",(caseName,))
+    IDs = q.fetchone()
+    filterID  = IDs[0]
+
+    q = conn.execute("SELECT START_DATETIME, END_DATETIME FROM FILTERS WHERE FILTERS.ID = ?",(filterID,))
+
+    time = q.fetchone()
+    return time
+
 def getDirectorySize(dir):
     return sum(os.path.getsize(dir+f) for f in os.listdir(dir) if os.path.isfile(dir+f))
 
@@ -90,9 +102,9 @@ def clearTmp(caseName):
 
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
-    q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = \'"+caseName+"\'")
+    q = conn.execute("SELECT FILTERID FROM CASES WHERE CASES.NAME = ?",(caseName,))
     caseID = q.fetchone()[0]
-    q = conn.execute("DELETE FROM FILES WHERE TYPE = 'tmp' AND CASEID = "+str(caseID))
+    q = conn.execute("DELETE FROM FILES WHERE TYPE = 'tmp' AND CASEID = ?",(caseID,))
     conn.commit()
     conn.close()
 
@@ -126,7 +138,7 @@ def getReadableFileInfo(fileName, caseName):
 
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
-    q = conn.execute("SELECT CONTENT FROM FILTERS WHERE ID = "+str(info[0]))
+    q = conn.execute("SELECT CONTENT FROM FILTERS WHERE ID = ?", (info[0],))
     filterContent = q.fetchone()[0]
     conn.commit()
     conn.close()
@@ -148,9 +160,9 @@ def updateFile(filePath, caseName, filterID):
         SQLHelper.updateFileInfo(fileID, filterID, fileSize, dateTimes)
     else:
         conn = sqlite3.connect(DATABASE)
-        q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = \'"+caseName+"\'")
+        q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = ?",(caseName,))
         caseID = q.fetchone()[0]
-        q = conn.execute("INSERT INTO FILES VALUES (null,\'"+fileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\')")
+        q = conn.execute("INSERT INTO FILES VALUES (null,?,?,?,?,?,?)",(filename, caseID, filterID, fileSize, dateTimes[0], dateTimes[1],))
         conn.commit()
         conn.close()
     syslog.syslog("PCAP APP: updateFile: "+filePath+"   ended: "+str(datetime.datetime.now()))

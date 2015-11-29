@@ -1,5 +1,5 @@
 import os, helper, sqlite3, SQLHelper, helper, htmlGen
-from CONSTANTS import *
+from config import *
 
 def printCurrentFile(filePath):
     print '<h1>'+helper.getDBNameFromPath(filePath)+'</h1>'
@@ -118,7 +118,7 @@ def printInputFilterForm(filePath, caseName):
     script += "    return sum;"
     script += "}"
     script += "</script>"
-    print script
+    #print script
     #print '<script>document.getElementById("progress-bar").style.width = "100px";</script>'
     #print '<form method="post">New filter:<br><textarea name="filter"></textarea><br><br><input type="hidden" name="fileName" value="'+filePath+'"><input type="hidden" name="caseName" value="'+caseName+'"><input type="submit" value="Render Graph"></a></form> '
 
@@ -138,7 +138,7 @@ def render(filePath, caseName, filterContent = None):
 import cgi, cgitb, os
 from htmlGen import *
 from Case import *
-from CONSTANTS import *
+from config import *
 from Filter import *
 
 cgitb.enable()

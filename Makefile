@@ -1,4 +1,4 @@
-all: init
+all: init, cases, pcap_filter, initDB
 
 cases:
 	mkdir cases
@@ -13,4 +13,6 @@ initDB:
 	python initDB.py
 
 clean:
-	rmdir cases
+	rm -r cases
+	rm -r DB
+	rm -f pcap_filter

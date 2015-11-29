@@ -1,7 +1,7 @@
 import cgi
 import cgitb, os, Case, helper, sqlite3, SQLHelper, saveFile, syslog, datetime, htmlGen
 from htmlGen import *
-from CONSTANTS import *
+from config import *
 
 def loadCase(caseName):
     cases = Case.loadFromDB(DATABASE, mode = 'dic')
@@ -14,9 +14,9 @@ def loadAllFiles(caseName = '*'):
     if caseName == '*':
         q = conn.execute("SELECT * FROM FILES")
     else:
-        q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = \'"+caseName+"\'")
+        q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = ?",(caseName,))
         caseID = q.fetchone()[0]
-        q = conn.execute("SELECT FILENAME FROM FILES WHERE CASEID = "+str(caseID))
+        q = conn.execute("SELECT FILENAME FROM FILES WHERE CASEID = ?",(caseID,))
     files = []
     for row in q:
         files.append(row[0])
@@ -143,6 +143,7 @@ def printFilterForm(case):
     aTitle = 'Apply filters on files may take up to ' + helper.getReadableTimeInfo(aTime)
 
     filterContent = helper.getFilter(case.caseName)
+    timeFilter = helper.getTimeFilter(case.caseName)
     print '<h2>Edit current filter</h2>'
     formStr = '<form class="form-horizontal" action="main.py" method="post">'
     formStr += '<div class="form-group"><label class="col-md-2">Name:</label>'
@@ -153,6 +154,9 @@ def printFilterForm(case):
     formStr += '<p class="col-md-10 form-control-static">'+filterContent+'</p></div>'
     formStr += '<input type="hidden" name="actions" value="editFilter">'
     formStr += '<input type="hidden" name="pagesToRender" value="case:saveFile">'
+    formStr += '<div class="form-group"><label class="col-md-2">Time window:</label>'
+    formStr += '<div class="col-md-2"><label>From:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" name="start" value="'+timeFilter[0]+'"/></div>'
+    formStr += '<div class="col-md-2"><label>To:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" name="end" value="'+timeFilter[1]+'"/></div></div>'
     formStr += '<div class="form-group">'
     formStr += '<label class="col-md-2">Edit current filter:</label>'
     formStr += '<div class="col-md-4"><textarea class="form-control" name="filterContent">'+filterContent+'</textarea></div></div>'
@@ -194,7 +198,7 @@ def render(caseName):
 import cgi, cgitb, os
 from htmlGen import *
 from Case import *
-from CONSTANTS import *
+from config import *
 
 cgitb.enable()
 

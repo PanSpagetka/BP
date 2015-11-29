@@ -16,7 +16,7 @@ def getHDDReadSpeed():
     return float(hddinfo.strip())
 
 if __name__ == "__main__":
-    configFile =  open('CONSTANTS.py','r').readlines()
+    configFile =  open('config.py','r').readlines()
     bogomips = getBogomips()
     hddReadSpeed = getHDDReadSpeed()
     for i in range(len(configFile)):
@@ -24,5 +24,5 @@ if __name__ == "__main__":
             configFile[i] = 'CPU_BOGOMIPS = ' + str(bogomips) + '\n'
         elif configFile[i].startswith('HDD_READ_SPEED'):
             configFile[i] = 'HDD_READ_SPEED = ' + str(hddReadSpeed) + '\n'
-    f = open('CONSTANTS.py','w')
+    f = open('config.py','w')
     f.writelines(configFile)
