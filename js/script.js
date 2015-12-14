@@ -1,15 +1,14 @@
-function getSelectValues(select) {
-  var result = [];
-  var options = select && select.options;
-  var opt;
-  for (var i=0, iLen=options.length; i<iLen; i++) {
-    opt = options[i];
-    if (opt.selected) {
-      result.push(opt.value || opt.text);
-    }
+function getCheckedBoxes(chkboxName) {
+  var checkboxes = document.getElementsByName(chkboxName);
+  var checkboxesChecked = [];
+  for (var i=0; i<checkboxes.length; i++) {
+     if (checkboxes[i].checked) {
+        checkboxesChecked.push(checkboxes[i].value);
+     }
   }
-  return result;
+  return checkboxesChecked;
 }
+
 function toHHMMSS(n) {
     var sep = ':',
         n = parseFloat(n),
@@ -25,7 +24,9 @@ function toHHMMSS(n) {
     }
 }
 function getSumTime(arg, baseTime) {
-    var selectedValues = getSelectValues(document.getElementById("additionalFiles"));
+    var selectedValues = getCheckedBoxes("additionalFiles");
+    console.log(selectedValues);
+    //var selectedValues = getSelectValues(document.getElementsByName("additionalFiles"));
     var b = arg.split(';');
     var files = {};
     var sum = baseTime;

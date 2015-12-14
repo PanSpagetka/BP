@@ -70,14 +70,14 @@ def addFile(caseName, filePath):
             if os.path.isfile(CASES_DIR + caseName + PCAP_DIR + filteredFileName):
                 dateTimes = helper.getDateTimeFromFile(CASES_DIR + caseName + PCAP_DIR + filteredFileName)
                 fileSize = os.path.getsize(CASES_DIR + caseName + PCAP_DIR + filteredFileName)
-                q = conn.execute("INSERT INTO FILES VALUES (null, ?, \'filtered\', ?, ?, ?, ?, ?, ?)", (filteredFileName, caseID, filterID, fileSize, dateTimes[0], dateTimes[1], sourceFile,))
+                q = conn.execute("INSERT INTO FILES VALUES (null, ?, \'filtered\', ?, ?, ?, ?, ?, ?, ?)", (filteredFileName, caseID, filterID, fileSize, dateTimes[0], dateTimes[1], sourceFile,'description'))
                 #q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\',\'"+sourceFile+"\')")
                 conn.commit()
             else:
                 f = open(CASES_DIR + caseName + PCAP_DIR + filteredFileName, 'w')
                 f.write("")
                 f.close()
-                q = conn.execute("INSERT INTO FILES VALUES (null, ?,\'filtered\', ?, ?, 0, \'n/a\', \'n/a\', ?)",(filteredFileName, caseID, filterID, sourceFile,))
+                q = conn.execute("INSERT INTO FILES VALUES (null, ?,\'filtered\', ?, ?, 0, \'n/a\', \'n/a\', ?,?)",(filteredFileName, caseID, filterID, sourceFile,'description',))
                 #q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+",0,\'n/a\',\'n/a\',\'"+sourceFile+"\')")
                 conn.commit()
             conn.close()
@@ -91,7 +91,7 @@ def addFile(caseName, filePath):
     else:
         conn = sqlite3.connect(DATABASE)
         conn.execute('pragma foreign_keys=ON')
-        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, null, ?, ?, ?, ?)", ("origin/"+fileName, 'origin', caseID, fileSize, dateTimes[0], dateTimes[1], 'n/a',))
+        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, null, ?, ?, ?, ?, ?)", ("origin/"+fileName, 'origin', caseID, fileSize, dateTimes[0], dateTimes[1], 'n/a','description',))
         #conn.execute("INSERT INTO FILES VALUES (null,\'"+"origin/"+fileName+"\',\'origin\',"+str(caseID)+",null"+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+dateTimes[1]+"\',\'n/a\')")
         conn.commit()
         conn.close()

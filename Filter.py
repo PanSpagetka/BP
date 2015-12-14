@@ -1,9 +1,9 @@
-import os, subprocess, sqlite3, SQLHelper, helper, syslog, datetime
+import os, subprocess, sqlite3, SQLHelper, helper, syslog, datetime, uuid
 from config import *
 
 # takes file to filter and filter
 # returns new filtered file
-def applyFilterOnFile(filepath, filterContent, caseName = None, tmp = False):
+def applyFilterOnFile(filepath, filterContent, caseName = None, tmp = False, override = False):
     syslog.syslog("PCAP APP: applyFilterOnFile: "+filepath+" started: "+str(datetime.datetime.now()))
     filepath = os.path.abspath(filepath)
     dirpath = CASES_DIR + caseName + PCAP_DIR if caseName else os.path.dirname(filepath) + '/'
@@ -34,7 +34,7 @@ def applyTimeFilterOnFile(filePath, caseName, start = '', end = '', override = F
     syslog.syslog("PCAP APP: applyTimeFilterOnFile: "+filePath+" started: "+str(datetime.datetime.now()))
     if start == '' and end == '':
         return None
-    outputFileName = os.path.basename(filePath).split('.')[0] + start.replace(' ', '-') + '-' + end.replace(' ', '-') + '.pcap'
+    outputFileName = os.path.basename(filePath).split('.')[0]+ '.' + str(uuid.uuid4()) + '.pcap'
     outputFilePath = CASES_DIR + caseName + TMP_DIR + outputFileName
     subprocess.call(['editcap','-A', start, '-B',end, filePath,outputFilePath])
     if not os.path.isfile(outputFilePath):
@@ -57,7 +57,7 @@ def applyTimeFilterOnFile(filePath, caseName, start = '', end = '', override = F
         sourceFile = helper.getDBNameFromPath(filePath)
         fileSize = os.path.getsize(outputFilePath)
         dateTimes = helper.getDateTimeFromFile(outputFilePath)
-        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, null, ?, ?, ?, ?)", ("tmp/"+outputFileName, "tmp", fileSize, dateTimes[0], dateTimes[1], sourceFile,))
+        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, null, ?, ?, ?, ?, ?)", ("tmp/"+outputFileName, "tmp", caseID, fileSize, dateTimes[0], dateTimes[1], sourceFile,'description',))
 #        conn.execute("INSERT INTO FILES VALUES (null,\'"+"tmp/"+outputFileName+"\',\'tmp\',"+str(caseID)+",null,"+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\',\'"+sourceFile+"\')")
         conn.commit()
         conn.close()
@@ -77,7 +77,7 @@ def applyTmpFilter(filePath, filterContent, caseName):
     conn.execute("INSERT INTO FILTERS VALUES(null, ?, \'\', \'\')",(summFilter,))
     q = conn.execute('SELECT max(ID) FROM FILTERS')
     filterID = q.fetchone()[0]
-    q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = ?"(caseName,))
+    q = conn.execute("SELECT ID FROM CASES WHERE CASES.NAME = ?",(caseName,))
     IDs = q.fetchone()
     caseID = IDs[0]
     if SQLHelper.getFileID(helper.getDBNameFromPath(CASES_DIR + caseName + TMP_DIR + filteredFileName), caseName) is not None:
@@ -88,7 +88,7 @@ def applyTmpFilter(filePath, filterContent, caseName):
         sourceFile = helper.getDBNameFromPath(filePath)
         fileSize = os.path.getsize(CASES_DIR + caseName + TMP_DIR + filteredFileName)
         dateTimes = helper.getDateTimeFromFile(CASES_DIR + caseName + TMP_DIR + filteredFileName)
-        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?)", ("tmp/"+filteredFileName, "tmp", caseID, filterID, fileSize, dateTimes[0], dateTimes[1], sourceFile,))
+        conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("tmp/"+filteredFileName, "tmp", caseID, filterID, fileSize, dateTimes[0], dateTimes[1], sourceFile,'description',))
         #conn.execute("INSERT INTO FILES VALUES (null,\'"+"tmp/"+filteredFileName+"\',\'tmp\',"+str(caseID)+","+str(filterID)+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\',\'"+sourceFile+"\')")
         conn.commit()
         conn.close()
@@ -115,13 +115,13 @@ def applyFilterOnCase(caseName, newFilter, mode = "edit", start = '', end = ''):
             q = conn.execute("UPDATE CASES SET FILTERID = ? WHERE CASES.ID = ?", (filterID, caseID))
         q = conn.execute("SELECT FILENAME FROM FILES WHERE FILES.TYPE = ? AND FILES.CASEID = ?", ('origin', caseID,))
     else:
-        q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = ?", (filterID,))
-        currentFilter = q.fetchone()
-        currentFilter = currentFilter[0]
-        if newFilter:
-                newFilter = currentFilter + " && " + newFilter if currentFilter else newFilter
-        else:
-            newFilter = currentFilter
+        #q = conn.execute("SELECT CONTENT FROM FILTERS WHERE FILTERS.ID = ?", (filterID,))
+        #currentFilter = q.fetchone()
+        #currentFilter = currentFilter[0]
+        #if newFilter:
+        #        newFilter = currentFilter + " && " + newFilter if currentFilter else newFilter
+        #else:
+        #newFilter = currentFilter
         q = conn.execute("UPDATE FILTERS SET CONTENT = ?, START_DATETIME = ?, end_DATETIME = ? WHERE FILTERS.ID = ?", (newFilter, start, end, filterID,))
         q = conn.execute("SELECT FILENAME FROM FILES WHERE FILES.TYPE = ? AND FILES.CASEID = ?", ('filtered', caseID))
     files = []
@@ -130,7 +130,7 @@ def applyFilterOnCase(caseName, newFilter, mode = "edit", start = '', end = ''):
     conn.commit()
     conn.close()
     for file in files:
-        filteredFileName = applyFilterOnFile(file, newFilter, caseName)
+        filteredFileName = applyFilterOnFile(file, newFilter, caseName, override = True)
         if not os.path.isfile(CASES_DIR + caseName + PCAP_DIR + filteredFileName):
             f = open(CASES_DIR + caseName + PCAP_DIR + filteredFileName, 'w')
             f.write("")

@@ -1,4 +1,12 @@
-Files:  
+#How to install:
+- Install python
+- Install Apache or other web server
+- Clone GituHub repository
+- Set Apache up so it can run python scripts from cloned directory
+- Run Makefile as root, need it because it uses hdparm to set up config.
+
+
+#Files:  
 Case.py - Case class.  
 Filter.py - All methods for filtering files.  
 config.py - Name of directories, and files, config for evaluating filters and rendering graph.  

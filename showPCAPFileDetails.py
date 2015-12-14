@@ -36,8 +36,17 @@ def printInputFilterForm(filePath, caseName):
     options += '<optgroup label="Temporary files">'
     for file in tmpFiles:
         options += '  <option value="'+file+'">'+file+'</option>'
+    allFiles = originFiles + filteredFiles + tmpFiles
+    table = '<div id="files" class="collapse">'
+    table += '<table id="" class="display" cellspacing="0" width="100%">'
+    table += '<thead><tr><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
+    for file in allFiles:
+        info = helper.getReadableFileInfo(file, caseName)
+        table += '<tr><th><div class="checkbox"><label><input type="checkbox" value="%s" name="additionalFiles" id="additionalFiles"><b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (file, file, info[1], info[2], info[3], info[0], info[4], info[5])
+    table += '</tbody></table></div>'
+    info = helper.getReadableFileInfo(helper.getDBNameFromPath(filePath), caseName)
     options += '</optgroup>'
-    print '<h2>Edit filter on file:</h2>'
+    print '<h2>File Details</h2>'
     formStr = '<form action="main.py" class="form-horizontal" method="post">'
     formStr += '<div class="form-group"><label class="col-md-2">Current filter on File:</label>'
     formStr += '<p class="col-md-10 form-control-static">'+info[0]+'</p></div>'
@@ -47,18 +56,32 @@ def printInputFilterForm(filePath, caseName):
     formStr += '<p class="col-md-10 form-control-static">'+info[2]+'</p></div>'
     formStr += '<div class="form-group"><label class="col-md-2">Last Packet:</label>'
     formStr += '<p class="col-md-10 form-control-static">'+info[3]+'</p></div>'
+    formStr += '<div class="form-group"><label class="col-md-2">Source File:</label>'
+    formStr += '<p class="col-md-10 form-control-static">'+info[4]+'</p></div>'
+    formStr += '<div class="form-group"><label class="col-md-2">Description:</label>'
+    formStr += '<div class="col-md-4"><input type="text" class="form-control" name="description"value="%s" /></div>' % info[5]
+    formStr += '<input type="hidden" name="pagesToRender" value="showFile">'
+    formStr += '<input type="hidden" name="caseName" value="'+caseName+'"/>'
+    formStr += '<input type="hidden" name="filePath" value="'+filePath+'"/>'
+    formStr += '<input type="hidden" name="actions" value="editDescription"/>'
+    formStr += '<input type="submit" class="btn btn-default" value="Edit" name="Edit"/></div></form>'
+
+    formStr += '<h2>Graph settings</h2>'
+    formStr += '<form action="main.py" class="form-horizontal" method="post">'
     formStr += '<div class="form-group"><label class="col-md-2">Time window:</label>'
-    formStr += '<div class="col-md-2"><label>From:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" name="start"/></div>'
-    formStr += '<div class="col-md-2"><label>To:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" name="end"/></div><div class="col-md-4">*This condition applies on ALL selected files.</div></div>'
+    formStr += '<div class="col-md-2"><label>From:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" value="%s"name="start"/></div>' % (info[2])
+    formStr += '<div class="col-md-2"><label>To:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" value="%s"name="end"/></div><div class="col-md-4">*This condition applies on ALL selected files.</div></div>' % (info[3])
     formStr += '<div class="form-group"><label class="col-md-2">Files to compare:</label>'
-    formStr += '<div class="col-md-4"><select multiple class="form-control" size="6" id="additionalFiles" title="Enter filter in tcpdump format" name="additionalFiles">'+options+'</select></div></div>'
+    formStr += '<div class="col-md-10"><a data-toggle="collapse" href="#files">Show/Hide</a></div></div>'
+    #formStr += '<div class="col-md-4"><select multiple class="form-control" size="6" id="additionalFiles" title="Enter filter in tcpdump format" name="additionalFiles">'+options+'</select></div></div>'
+    formStr += '<div class="form-group"><div class="col-md-12"> '+table+'</div></div>'
     formStr += '<div class="form-group"><label class="col-md-2">Edit filter:</label>'
     formStr += '<div class="col-md-4"><textarea class="form-control" name="filterContent"></textarea></div><div class="col-md-4">*This condition applies ONLY on primary selected file.</div></div>'
     formStr += '<div class="form-group"><label class="col-md-2">Graph time sample rate(s):</label>'
     formStr += '<div class="col-md-4"><input type="text" title="Enter amount of seconds is one time tick in graph. To low value can cause text label colisions. If empty, default value will be used." class="form-control" name="xtics"/></div></div>'
     formStr += '<div class="form-group"><div class="col-md-6">'
-    formStr += '<input type="submit" class="btn btn-default pull-right" title="'+title+'"value="renderGraph" id="renderGraph" onclick="var t = getSumTime(\''+filesApproxStr+'\','+str(approximateTime)+');startProgresBar(t);">'
-    formStr += '<input type="submit" class="btn btn-default pull-right" title="'+title+'"value="renderDetailedGraph" name="renderDetailedGraph" id="renderDetailedGraph" onclick="var t = getSumTime(\''+filesApproxStr+'\','+str(approximateTime)+');startProgresBar(t);"></div></div>'
+    formStr += '<input type="submit" class="btn btn-default pull-right" title="'+title+'"value="Render Graph" name="renderGraph" id="renderGraph" onclick="var t = getSumTime(\''+filesApproxStr+'\','+str(approximateTime)+');startProgresBar(t);">'
+    formStr += '<input type="submit" class="btn btn-default pull-right" title="'+title+'"name="renderDetailedGraph" value="Render Detailed Graph" name="renderDetailedGraph" id="renderDetailedGraph" onclick="var t = getSumTime(\''+filesApproxStr+'\','+str(approximateTime)+');startProgresBar(t);"></div></div>'
 
     formStr += '<input type="hidden" name="actions" value="applyFilter">'
     formStr += '<input type="hidden" name="pagesToRender" value="showFile:showGraph">'
@@ -71,53 +94,6 @@ def printInputFilterForm(filePath, caseName):
 
     #print '<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="70"aria-valuemin="0" aria-valuemax="100" style="width:70%"><spanclass="sr-only">70% Complete</span></div></div>'
     print htmlGen.generateProgresBar()
-    script = '<script>'
-    script += "function getSelectValues(select) {"
-    script += "  var result = [];"
-    script += "  var options = select && select.options;"
-    script += "  var opt;"
-    script += "  for (var i=0, iLen=options.length; i<iLen; i++) {"
-    script += "    opt = options[i];"
-    script += "    if (opt.selected) {"
-    script += "      result.push(opt.value || opt.text);"
-    script += "    }"
-    script += "  }"
-    script += "  return result;"
-    script += "}"
-
-    script += 'function toHHMMSS(n) {'
-    script += "    var sep = ':',"
-    script += '        n = parseFloat(n),'
-    script += '        hh = parseInt(n / 3600);'
-    script += '    n %= 3600;'
-    script += '    var mm = parseInt(n / 60),'
-    script += '        ss = parseInt(n % 60);'
-    script += "    return pad(hh,2)+sep+pad(mm,2)+sep+pad(ss,2);"
-    script += '    function pad(num, size) {'
-    script += '        var str = num + "";'
-    script += '        while (str.length < size) str = "0" + str;'
-    script += '        return str;'
-    script += '    }'
-    script += '}'
-
-    script += "function getSumTime(arg, baseTime) {"
-    script += '    var selectedValues = getSelectValues(document.getElementById("additionalFiles"));'
-    script += "    var b = arg.split(';');"
-    script += "    var files = {};"
-    script += "    var sum = baseTime;"
-    script += "    for(i = 0; i < b.length; i++){"
-    script += "     pom = b[i].split(':');"
-    script += "     files[pom[0]] = pom[1];"
-    script += "    }"
-    script += "    for(i = 0; i < selectedValues.length; i++)"
-    script += "    {"
-    script += "        sum = eval('sum + parseInt(files[selectedValues[i]])');"
-    script += "    }"
-    script += "    document.getElementById(\"renderGraph\").title = 'Approximate time to render graph is: ' + toHHMMSS(sum);"
-    script += "    document.getElementById(\"renderDetailedGraph\").title = 'Approximate time to render graph is: ' + toHHMMSS(sum);"
-    script += "    return sum;"
-    script += "}"
-    script += "</script>"
     #print script
     #print '<script>document.getElementById("progress-bar").style.width = "100px";</script>'
     #print '<form method="post">New filter:<br><textarea name="filter"></textarea><br><br><input type="hidden" name="fileName" value="'+filePath+'"><input type="hidden" name="caseName" value="'+caseName+'"><input type="submit" value="Render Graph"></a></form> '

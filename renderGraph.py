@@ -1,5 +1,5 @@
 
-import os, os.path, subprocess, sys, syslog, datetime, shutil, Filter
+import os, os.path, subprocess, sys, syslog, datetime, shutil, Filter, helper
 from config import *
 
 #form = cgi.FieldStorage()
@@ -7,7 +7,7 @@ def render(caseName, filePath, additionalFiles = [], type = 'png', start = '', e
 	syslog.syslog("PCAP APP: renderGraph: started: "+str(datetime.datetime.now()))
 	colors = ["red","black", "yellow","green","blue","cyan","orange","violet"]
 	#filepath = os.path.abspath(filePath)
-	originFileName = os.path.basename(filePath)
+	originFileName = helper.getDBNameFromPath(filePath)
 	dirpath = os.path.dirname(filePath) + '/tmp'
 	#call captcp and draw graph to png file
 
@@ -15,12 +15,14 @@ def render(caseName, filePath, additionalFiles = [], type = 'png', start = '', e
 
 
 
-	ret = Filter.applyTimeFilterOnFile(filePath,caseName,start,end)
-	if ret:
-		filePath = ret
-		dirpath = os.path.dirname(filePath)
+	#ret = Filter.applyTimeFilterOnFile(filePath,caseName,start,end)
+	#if ret:
+	#	filePath = ret
+	#	dirpath = os.path.dirname(filePath)
 
+	dirpath = CASES_DIR + caseName + TMP_DIR
 	shutil.copy(GRAPH_SCRIPT_DIR+'Makefile',dirpath)
+
 	if type == 'png':
 		shutil.copy(GRAPH_SCRIPT_DIR+'throughput.gpi',dirpath+"/"+'throughput.gpi')
 	else:
@@ -37,7 +39,15 @@ def render(caseName, filePath, additionalFiles = [], type = 'png', start = '', e
 			script.write("set xtics " + str(xtics) + '\n')
 		except ValueError:
 			pass
-	plot = 'plot "'+os.path.basename(data.name)+'" using 2:4  every ::13 with lines ls 1 lc rgb "'+colors[0]+'" title "'+originFileName+'"'
+	f = helper.getFilter(caseName, helper.getDBNameFromPath(filePath))
+	# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	# JAKY MA BYT TITLE ???
+	# replace current filename for filename of source file if there is source file
+	info = helper.getReadableFileInfo(helper.getDBNameFromPath(filePath), caseName)
+	if info[4]:
+		originFileName = info[4]
+	syslog.syslog("PCAP APP: "+helper.getDBNameFromPath(filePath))
+	plot = 'plot "'+os.path.basename(data.name)+'" using 2:4  every ::13 with lines ls 1 lc rgb "'+colors[0]+'" title "'+originFileName+", filter: "+f+'"'
 	syslog.syslog("PCAP APP: " + plot)
 	data.close()
 	i = 1
@@ -51,7 +61,12 @@ def render(caseName, filePath, additionalFiles = [], type = 'png', start = '', e
 		syslog.syslog("PCAP APP: Processing file: "+file+" started: "+str(datetime.datetime.now()))
 		subprocess.call(['tshark', '-q', '-nr',filePath, '-t', 'ad', '-z' 'io,stat,1'], stdout = data)
 		syslog.syslog("PCAP APP: Processing file: "+file+"   ended: "+str(datetime.datetime.now()))
-		plot += ', "'+os.path.basename(data.name)+'" using 2:4  every ::13 with lines ls 1 lc rgb "'+colors[i%8]+'" title "'+file+'"'
+		info = helper.getReadableFileInfo(file, caseName)
+		f = helper.getFilter(caseName,file)
+		# replace current filename for filename of source file if there is source file
+		if info[4] != 'n/a':
+			file = info[4]
+		plot += ', "'+os.path.basename(data.name)+'" using 2:4  every ::13 with lines ls 1 lc rgb "'+colors[i%8]+'" title "'+file+",filter: "+f+'"'
 		data.close()
 		i += 1
 	script.write(plot)

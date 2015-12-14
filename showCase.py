@@ -76,36 +76,47 @@ def printPCAPs(case):
     #print '<button class="btn" data-toggle="collapse" data-target="#originFiles">Collapsible</button>'
     formStr = '<form action="main.py" class="form-horizontal" method="post">'
     formStr += '<a data-toggle="collapse" href="#originFiles"><h3>Original files: ('+helper.readableSizeOfDirectory(CASES_DIR+case.caseName+ORIGIN_DIR)+')</h3></a>' if originFiles else ""
-    formStr += '<div id="originFiles" class="collapse"><table class = "table">'
-    formStr += '<thead><tr><th class="col-md-4">Name</th><th class="col-md-1">Size</th><th class="col-md-2">First Packet</th><th class="col-md-2">Last Packet</th><th>Filter</th><th class="col-md-2">Source file</th></tr></thead><tbody>'
+    formStr += '<div id="originFiles" class="collapse">'
+    formStr += '<table id="" class="display" cellspacing="0" width="100%">'
+    formStr += '<thead><tr><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
     originFiles.sort()
     for file in originFiles:
         info = helper.getReadableFileInfo(file,case.caseName)
-        formStr += '<tr><td><div class="radio">'
-        formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></tr></div>'
+        formStr += '<tr><th><div class="radio"><label><input type="radio" value="%s" name="filePath"> <b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (path + file, file, info[1], info[2], info[3], info[0], info[4], info[5])
+
+        #formStr += '<tr><td><div class="radio">'
+        #formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></tr></div>'
     formStr += '</tbody></table></div>'
 
     formStr += '<a data-toggle="collapse" href="#filteredFiles"><h3>Filtered files: ('+helper.readableSizeOfDirectory(CASES_DIR+case.caseName+PCAP_DIR)+')</h3></a>' if filteredFiles else ""
-    formStr += '<div id="filteredFiles" class="collapse"><table class = "table">'
-    formStr += '<thead><tr><th class="col-md-4">Name</th><th class="col-md-1">Size</th><th class="col-md-2">First Packet</th><th class="col-md-2">Last Packet</th><th>Filter</th><th class="col-md-2">Source file</th></tr></thead><tbody>'
+    formStr += '<div id="filteredFiles" class="collapse">'
+    formStr += '<table id="" class="display" cellspacing="0" width="100%">'
+    formStr += '<thead><tr><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
     filteredFiles.sort()
     for file in filteredFiles:
         info = helper.getReadableFileInfo(file,case.caseName)
-        formStr += '<tr><td><div class="radio">'
-        formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></td></tr></div>'
+        formStr += '<tr><th><div class="radio"><label><input type="radio" value="%s" name="filePath"> <b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (path + file, file, info[1], info[2], info[3], info[0], info[4], info[5])
+        #formStr += '<tr><td><div class="radio">'
+        #formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></td></tr></div>'
     formStr += '</tbody></table></div>'
     tmpFiles.sort
     if tmpFiles:
         formStr += '<a data-toggle="collapse" href="#tmpFiles"><h3>Temporary files: ('+helper.readableSizeOfDirectory(CASES_DIR+case.caseName+TMP_DIR)+')</h3></a>'
-        formStr += '<div id="tmpFiles" class="collapse"><table class = "table table-fixed" style="word-wrap:break-word;">'
-        formStr += '<thead><tr><th class="col-md-4">Name</th><th class="col-md-1">Size</th><th class="col-md-2">First Packet</th><th class="col-md-2">Last Packet</th><th>Filter</th><th class="col-md-2">Source file</th></tr></thead><tbody>'
+        #formStr += '<div id="tmpFiles" class="collapse"><table class = "table table-fixed" style="word-wrap:break-word;">'
+        #formStr += '<thead><tr><th class="col-md-4">Name</th><th class="col-md-1">Size</th><th class="col-md-2">First Packet</th><th class="col-md-2">Last Packet</th><th>Filter</th><th class="col-md-2">Source file</th><th class="col-md-2">Description</th></tr></thead><tbody>'
+
+        formStr += '<div id="tmpFiles" class="collapse">'
+        formStr += '<table id="" class="display" cellspacing="0" width="100%">'
+        formStr += '<thead><tr><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
         for file in tmpFiles:
             info = helper.getReadableFileInfo(file,case.caseName)
-            formStr += '<tr><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;"><div class="radio">'
-            formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></td></tr></div>'
+            formStr += '<tr><th><div class="radio"><label><input type="radio" value="%s" name="filePath"> <b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (path + file, file, info[1], info[2], info[3], info[0], info[4], info[5])
+
+            #formStr += '<tr><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;"><div class="radio">'
+            #formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td><td>'+info[5]+'</td></tr></div>'
         formStr += '</tbody></table></div>'
     formStr += '<div class="form-group"><div class="col-md-6">'
-    formStr += '<input type="submit" class="btn btn-default pull-right" value="selectFile"/>'
+    formStr += '<input type="submit" class="btn btn-default pull-right" value="Select File" name="selectFile"/>'
     formStr += '<input type="submit" class="btn btn-default pull-left" name="clearTmp" value="Delete All Temporary Files"></div>'
     formStr += '</div>'
 
@@ -146,24 +157,24 @@ def printFilterForm(case):
     timeFilter = helper.getTimeFilter(case.caseName)
     print '<h2>Edit current filter</h2>'
     formStr = '<form class="form-horizontal" action="main.py" method="post">'
-    formStr += '<div class="form-group"><label class="col-md-2">Name:</label>'
-    formStr += '<p class="col-md-10 form-control-static">'+case.caseName+'</p></div>'
+    #formStr += '<div class="form-group"><label class="col-md-2">Name:</label>'
+    #formStr += '<p class="col-md-10 form-control-static">'+case.caseName+'</p></div>'
     formStr += '<div class="form-group"><label class="col-md-2">Description:</label>'
     formStr += '<p class="col-md-10 form-control-static">'+case.description+'</p></div>'
-    formStr += '<div class="form-group"><label class="col-md-2">Current filter:</label>'
-    formStr += '<p class="col-md-10 form-control-static">'+filterContent+'</p></div>'
+    #formStr += '<div class="form-group"><label class="col-md-2">Current filter:</label>'
+    #formStr += '<p class="col-md-10 form-control-static">'+filterContent+'</p></div>'
     formStr += '<input type="hidden" name="actions" value="editFilter">'
     formStr += '<input type="hidden" name="pagesToRender" value="case:saveFile">'
     formStr += '<div class="form-group"><label class="col-md-2">Time window:</label>'
     formStr += '<div class="col-md-2"><label>From:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" name="start" value="'+timeFilter[0]+'"/></div>'
     formStr += '<div class="col-md-2"><label>To:</label><input type="text" title="Enter date and time in format: YYYY-MM-DD HH:MM:SS" class="form-control" name="end" value="'+timeFilter[1]+'"/></div></div>'
     formStr += '<div class="form-group">'
-    formStr += '<label class="col-md-2">Edit current filter:</label>'
+    formStr += '<label class="col-md-2">Current filter:</label>'
     formStr += '<div class="col-md-4"><textarea class="form-control" name="filterContent">'+filterContent+'</textarea></div></div>'
     formStr += '<input type="hidden" name="caseName" value="'+case.caseName+'">'
     formStr += '<div class="form-group">'
-    formStr += '<div class="col-md-6"><input type="submit" value="Append" class="btn btn-default pull-right" title="'+aTitle+'" onclick="startProgresBar('+str(aTime)+')" name="Append">'
-    formStr += '<input type="submit" value="Edit" class="btn btn-default pull-right" title="'+eTitle+'" onclick="startProgresBar('+str(eTime)+')" name="Edit"></div></div></form>'
+    formStr += '<div class="col-md-6"><input type="submit" value="Apply on Filtered" class="btn btn-default pull-right" title="'+aTitle+'" onclick="startProgresBar('+str(aTime)+')" name="Append">'
+    formStr += '<input type="submit" value="Apply" class="btn btn-default pull-right" title="'+eTitle+'" onclick="startProgresBar('+str(eTime)+')" name="Edit"></div></div></form>'
     print formStr
     print '<hr/>'
     print htmlGen.generateProgresBar()

@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-import sqlite3, os
+import sqlite3
 from config import DATABASE
 
-os.remove(DATABASE)
+#os.remove(DATABASE)
 conn = sqlite3.connect(DATABASE)
 print "Opened database successfully";
 
@@ -29,6 +29,7 @@ conn.execute('''CREATE TABLE FILES
             FIRST_PACKET_DATETIME TEXT,
             LAST_PACKET_DATETIME TEXT,
             SOURCE_FILE TEXT,
+            DESCRIPTION TEXT,
             FOREIGN KEY (FILTERID) REFERENCES FILTERS(ID),
             FOREIGN KEY (CASEID) REFERENCES CASES(ID));''')
 

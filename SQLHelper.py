@@ -45,21 +45,25 @@ def loadAllFiles(caseName = '*'):
     return files
 
 def updateFileInfo(fileID, filterID = None, size = None, dateTimes = None):
-
     conn = sqlite3.connect(DATABASE)
-    #conn.execute('pragma foreign_keys=ON')
-    '''dbStr = ""
-    dbStr += "FILTERID = " + str(filterID) + ", " if filterID else ""
-    dbStr += "SIZE = " + str(size)  + ", "if size else ""
-    dbStr += "FIRST_PACKET_DATETIME = \'" + str(dateTimes[0]) + "\', LAST_PACKET_DATETIME = \'"+ str(dateTimes[1]) + "\', " if dateTimes else ""
-    dbStr = dbStr[:-2]'''
-    q = conn.execute("UPDATE FILES SET FILTERID = ?, SIZE = ?, FIRST_PACKET_DATETIME = ?, LAST_PACKET_DATETIME = ? WHERE FILES.ID = ?", (filterID, size, dateTimes[0], dateTimes[1], fileID,))
+    conn.execute('pragma foreign_keys=ON')
+    if filterID != 'null':
+        q = conn.execute("UPDATE FILES SET FILTERID = ?, SIZE = ?, FIRST_PACKET_DATETIME = ?, LAST_PACKET_DATETIME = ? WHERE FILES.ID = ?", (filterID, size, dateTimes[0], dateTimes[1], fileID,))
+    else:
+        q = conn.execute("UPDATE FILES SET SIZE = ?, FIRST_PACKET_DATETIME = ?, LAST_PACKET_DATETIME = ? WHERE FILES.ID = ?", (size, dateTimes[0], dateTimes[1], fileID,))
+    conn.commit()
+    conn.close()
+
+def updateFileDescription(fileID, description):
+    conn = sqlite3.connect(DATABASE)
+    conn.execute('pragma foreign_keys=ON')
+    conn.execute("UPDATE FILES SET DESCRIPTION = ? WHERE ID = ?",(description, fileID,))
     conn.commit()
     conn.close()
 
 def getFileInfo(fileID):
     conn = sqlite3.connect(DATABASE)
-    q = conn.execute("SELECT FILTERID, SIZE, FIRST_PACKET_DATETIME, LAST_PACKET_DATETIME, SOURCE_FILE FROM FILES WHERE ID = ?",(fileID,))
+    q = conn.execute("SELECT FILTERID, SIZE, FIRST_PACKET_DATETIME, LAST_PACKET_DATETIME, SOURCE_FILE, DESCRIPTION FROM FILES WHERE ID = ?",(fileID,))
     info = q.fetchone()
     conn.commit()
     conn.close()

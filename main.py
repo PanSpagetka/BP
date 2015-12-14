@@ -46,6 +46,9 @@ if 'editFilter' in actions:
 
 # when applying filter on currently selected file, crete new tmp file
 if "applyFilter" in actions:
+    start = form['start'].value if form.has_key('start') else ''
+    end = form['end'].value if form.has_key('end') else ''
+    syslog.syslog("PCAP APP:  "+start +'    ' + end)
     if form.has_key('filterContent'):
         filteredFileName = Filter.applyTmpFilter(form['filePath'].value, form['filterContent'].value, form['caseName'].value)
         if filteredFileName:
@@ -55,6 +58,9 @@ if "applyFilter" in actions:
             pagesToRender.remove(renderGraph)
             message = "<strong>Error!</strong> Rendering graph Error, make sure you use right filter syntax."
             messageType = "error"
+    if start and end:
+        ret = Filter.applyTimeFilterOnFile(form['filePath'].value, caseName, start, end, override = False)
+        form['filePath'].value = ret
 
 
 if "uploadFile" in actions:
@@ -71,11 +77,15 @@ if "deleteFile" in actions:
         pagesToRender = ['case','saveFile']
         message = "<strong>Success!</strong> All temporary files was deleted."
         messageType = "success"
+if "editDescription" in actions:
+    if form.has_key('Edit'):
+        helper.updateFileDescription(form['filePath'].value, form['caseName'].value, form['description'].value)
+        syslog.syslog("PCAP APP: EDIT2")
 
 # generate begining of html
 print "Content-Type: text/html\n\n"
 # generate JS which bootstrap need to work
-print genBootstrapJS()
+#print genBootstrapJS()
 print genBegining('Main')
 '''
 for i in form.keys():
