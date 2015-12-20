@@ -1,4 +1,4 @@
-import os, subprocess, sqlite3, SQLHelper, helper, syslog, datetime, uuid
+import os, subprocess, sqlite3, SQLHelper, helper, syslog, datetime, tempfile
 from config import *
 
 # takes file to filter and filter
@@ -34,7 +34,8 @@ def applyTimeFilterOnFile(filePath, caseName, start = '', end = '', override = F
     syslog.syslog("PCAP APP: applyTimeFilterOnFile: "+filePath+" started: "+str(datetime.datetime.now()))
     if start == '' and end == '':
         return None
-    outputFileName = os.path.basename(filePath).split('.')[0]+ '.' + str(uuid.uuid4()) + '.pcap'
+    tmpF = tempfile.NamedTemporaryFile(delete=True)
+    outputFileName = os.path.basename(tmpF.name + '.pcap') 
     outputFilePath = CASES_DIR + caseName + TMP_DIR + outputFileName
     subprocess.call(['editcap','-A', start, '-B',end, filePath,outputFilePath])
     if not os.path.isfile(outputFilePath):

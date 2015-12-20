@@ -68,6 +68,7 @@ def addCase(caseName, description):
     os.mkdir(path)
     os.mkdir(path + IMG_DIR)
     os.mkdir(path + PCAP_DIR)
+    # os.mkdir(path + PCAP_DIR + 'filtered/')
     os.mkdir(path + TMP_DIR)
     os.mkdir(path + TMP_DIR + 'tmp/')
     os.mkdir(path + ORIGIN_DIR)

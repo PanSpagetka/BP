@@ -39,10 +39,11 @@ def printInputFilterForm(filePath, caseName):
     allFiles = originFiles + filteredFiles + tmpFiles
     table = '<div id="files" class="collapse">'
     table += '<table id="" class="display" cellspacing="0" width="100%">'
-    table += '<thead><tr><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
+    table += '<thead><tr><th>ID</th><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
     for file in allFiles:
         info = helper.getReadableFileInfo(file, caseName)
-        table += '<tr><th><div class="checkbox"><label><input type="checkbox" value="%s" name="additionalFiles" id="additionalFiles"><b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (file, file, info[1], info[2], info[3], info[0], info[4], info[5])
+        sourceID = str(SQLHelper.getFileID(info[4],caseName)) + '.' if str(SQLHelper.getFileID(info[4],caseName)) != 'None' else ''
+        table += '<tr><th>%s</th><th><div class="checkbox"><label><input type="checkbox" value="%s" name="additionalFiles" id="additionalFiles"><b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (str(info[6]), file, file, info[1], info[2], info[3], info[0], sourceID + info[4], info[5])
     table += '</tbody></table></div>'
     info = helper.getReadableFileInfo(helper.getDBNameFromPath(filePath), caseName)
     options += '</optgroup>'

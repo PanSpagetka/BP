@@ -12,7 +12,7 @@ def readableSizeOfFile(filePath):
 def getRenderGraphTime(fileSize):
     bytesInMB = 1048576
     fileSize /= bytesInMB
-    return (fileSize * BOGOMIPS_TO_RENDER_1MB_GRAPH) / CPU_BOGOMIPS
+    return 2 + (fileSize * BOGOMIPS_TO_RENDER_1MB_GRAPH) / CPU_BOGOMIPS
 
 def getFilterFileTime(fileSize):
     bytesInMB = 1048576
@@ -155,14 +155,14 @@ def getReadableFileInfo(fileName, caseName):
     s = sizeof_fmt(info[1]).replace(" ", "")
     if info[0] is None:
         #return ["None",sizeof_fmt(info[1]), info[2], info[3], info[4]]
-        return ["None",s, info[2], info[3], info[4], info[5]]
+        return ["None",s, info[2], info[3], info[4], info[5], fileID]
     conn = sqlite3.connect(DATABASE)
     conn.execute('pragma foreign_keys=ON')
     q = conn.execute("SELECT CONTENT FROM FILTERS WHERE ID = ?", (info[0],))
     filterContent = q.fetchone()[0]
     conn.commit()
     conn.close()
-    return [filterContent, s, info[2], info[3], info[4], info[5]]
+    return [filterContent, s, info[2], info[3], info[4], info[5], fileID]
 
 
 def getDBNameFromPath(filePath):
