@@ -8,7 +8,7 @@ initApp:
 cases:
 	mkdir cases
 	chown $(apache_user) -R cases
-	chmod 777 cases
+	chmod 774 cases
 
 init:
 	python init.py

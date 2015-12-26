@@ -1,6 +1,8 @@
 #How to install:
-- Install python
+- Install python, libpcap0.8-dev, hdparm, sqlite3, libapache2-mod-python, wireshark, tshark, gnuplot, texlive-font-utils, imagemagick
 - Install Apache or other web server
+- Enable Apache modules: ssl, cgi, python and mime
+- Enable AddHandler cgi-script .py in mods-enabled/mime.conf
 - Clone GituHub repository
 - Set Apache up so it can run python scripts from cloned directory
 - Run Makefile as root, need it because it uses hdparm to set up config.

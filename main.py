@@ -118,17 +118,18 @@ if "saveFile" in pagesToRender:
     saveFile.render(form['caseName'].value)
 
 if "showFile" in pagesToRender:
-    if form.has_key('filePath'):
+    if form.has_key('filePath') and form['filePath'].value is not None:
         showPCAPFileDetails.render(form['filePath'].value, form['caseName'].value)
     else:
-        print '<div class="alert alert-warning"> <strong>Warning!</strong>Please select one file from list.</div>'
+        print '<div class="alert alert-danger"> <strong>Error!</strong>Errer occured when rendering graph.</div>'
         showCase.render(form['caseName'].value)
         saveFile.render(form['caseName'].value)
+        pagesToRender = []
 
 if "showGraph" in pagesToRender:
 
     #renderGraph.render(form['filePath'].value)
-    #try:
+    try:
         start = form['start'].value if form.has_key('start') else ''
         end = form['end'].value if form.has_key('end') else ''
         xtics = form['xtics'].value if form.has_key('xtics') else ''
@@ -136,8 +137,8 @@ if "showGraph" in pagesToRender:
             print '<embed src="'+renderGraph.render(form['caseName'].value,form['filePath'].value, form.getlist('additionalFiles'), type = 'pdf', start = start, end = end, xtics = xtics)+'" width="100%" height="450" type="application/pdf">'
         else:
             print '<img width="800" src="'+renderGraph.render(form['caseName'].value,form['filePath'].value, form.getlist('additionalFiles'), type = 'png', start = start, end = end, xtics = xtics)+'">'
-    #except CalledProcessError:
-    #    print '<div class="alert alert-danger"> <strong>Error!</strong> Rendering graph Error, make sure you use right filter syntax and files contains some data.</div>'
+    except CalledProcessError:
+        print '<div class="alert alert-danger"> <strong>Error!</strong> Rendering graph Error, make sure you use right filter syntax and files contains some data.</div>'
     #    print '<div class="alert alert-info"> <strong>Info!</strong> Your filter could be also too restricted and didnt leave enough TCP packets to render graph. Try less restrictive filter.'
     # print '<img width="400" src="renderGraph.py?fileName='+form['filePath'].value+'">'
     # print '<img width="400" src="cases/case01/PCAPs/tmp/throughput.png">'
