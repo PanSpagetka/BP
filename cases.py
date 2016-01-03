@@ -5,7 +5,6 @@ from config import *
 
 # load cases from file
 def loadCases():
-    # return Case.loadFromFile('Cases.db')
     return Case.loadFromDB(DATABASE)
 
 # add new case to DB
@@ -20,6 +19,7 @@ def addCase(caseName, caseDescription):
     Case.addCase(caseName, caseDescription)
     return ("<strong>Success!</strong> Case was successfully added.", "success")
 
+# return size of new, unprocessed file in case
 def getSizeOfNewFilesInCase(caseName):
     originFiles = SQLHelper.loadFiles(caseName, 'origin')
     #files in directory
@@ -73,48 +73,3 @@ def render():
     formStr += '<input type="hidden" name="actions" value="addCase">\n'
     formStr += '<input type="submit" value="Submit" class="btn btn-default pull-right"></a></form>\n'
     print formStr
-
-
-
-'''
-#!/usr/bin/python
-
-import cgi
-import cgitb, os
-from htmlGen import *
-from Case import *
-
-cgitb.enable()
-
-# generate begining of html
-print "Content-Type: text/html\n\n"
-print genBegining('Cases')
-
-# load all cases from file and create links to them
-cases = loadFromFile('Cases.db')
-for case in cases:
-	print genHref(text = case.caseName + " " + case.description,link = "showCase.py?case="+case.caseName)
-	print "<br><br>"
-
-
-form = cgi.FieldStorage()
-# form which is used for adding new case
-print '<form method="post"> Case Name:<br> <input type="text" name="caseName"><br><br><textarea name="caseDescription">Enter text here...</textarea><br><br><input type="submit" value="Submit"></a></form> '
-
-# if caseName and caseDescription is set add new case to DB
-if (form.has_key("caseName") and form.has_key("caseDescription")):
-	print "Case name: " + form["caseName"].value + "Case description: " + form["caseDescription"].value + " was successfully added"
-	addCase(form["caseName"].value, form["caseDescription"].value)
-
-# generate end of html
-print genEnd()
-
-
-#print genHref("?action=print")
-
-print ' <form method = "post"> Username:<br><input type="text" name="username"><br> Password:<br> <input type="password" name="password"><br><br>
-<a href = "test.py"><input type="submit" value="Login"> </a> </form> '
-
-if 'error' in os.environ:
-	print os.environ['error']
-'''

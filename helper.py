@@ -5,20 +5,24 @@ from os.path import isfile, join
 unit_list = zip(['B', 'KB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
 MONTHS = {'jan': '01','feb': '02','mar': '03','apr':'04','may':'05','jun':'06','jul':'07','aug':'08','sep':'09','oct':'10','nov':'11','dec':'12'}
 
+# return redable size of file
 def readableSizeOfFile(filePath):
     num = os.path.getsize(filePath)
     return sizeof_fmt(num)
 
+#return aporoximate time needed to render graph
 def getRenderGraphTime(fileSize):
     bytesInMB = 1048576
     fileSize /= bytesInMB
     return 2 + (fileSize * BOGOMIPS_TO_RENDER_1MB_GRAPH) / CPU_BOGOMIPS
 
+#return aporoximate time needed to filter file
 def getFilterFileTime(fileSize):
     bytesInMB = 1048576
     fileSize /= bytesInMB
     return (fileSize * TIMING_CONSTANT) / HDD_READ_SPEED
 
+#return time in human readable format
 def getReadableTimeInfo(seconds):
     if seconds < 10:
         return "few seconds."
@@ -43,12 +47,13 @@ def sizeof_fmt(num):
     if num == 1:
         return '1B'
 
+# remove all files from folder
 def removeFilesFromFolder(folder):
     files = [ f for f in os.listdir(folder) if isfile(join(folder,f)) ]
     for file in files:
         os.remove(folder + file)
 
-# type = case/file
+# return applied filter from case/file
 def getFilter(caseName, fileName = None, type = "case"):
     conn = sqlite3.connect(DATABASE)
     if fileName is None:
@@ -80,6 +85,7 @@ def getFilter(caseName, fileName = None, type = "case"):
     conn.close()
     return filterContent if filterContent else "None"
 
+# return time window of case
 def getTimeFilter(caseName):
     conn = sqlite3.connect(DATABASE)
     q = conn.execute("SELECT FILTERID FROM CASES WHERE CASES.NAME = ?",(caseName,))
@@ -91,12 +97,14 @@ def getTimeFilter(caseName):
     time = q.fetchone()
     return time
 
+# return size of files in directory
 def getDirectorySize(dir):
     return sum(os.path.getsize(dir+f) for f in os.listdir(dir) if os.path.isfile(dir+f))
-
+# return size of files in directory in human readableformat
 def readableSizeOfDirectory(dir):
     return sizeof_fmt(getDirectorySize(dir))
 
+# delete all temrorary files
 def clearTmp(caseName):
     removeFilesFromFolder(CASES_DIR + caseName + TMP_DIR + "tmp/")
     removeFilesFromFolder(CASES_DIR + caseName + TMP_DIR)
@@ -111,6 +119,7 @@ def clearTmp(caseName):
     conn.commit()
     conn.close()
 
+# get datetime of first packet in file
 def getStartDateTimeFromFile(filePath):
     r = subprocess.check_output(['capinfos','-a',filePath])
     r = r.split('\n')
@@ -125,6 +134,7 @@ def getStartDateTimeFromFile(filePath):
     year = dt[4]
     return "%s-%s-%s %s" % (year, month,day,time)
 
+# get datetime of last packet in file
 def getEndDateTimeFromFile(filePath):
     r = subprocess.check_output(['capinfos','-e',filePath])
     r = r.split('\n')
@@ -149,6 +159,7 @@ def getDateTimeFromFile(filePath):
         return ('DATE PROCESS ERROR', 'DATE PROCESS ERROR')
     syslog.syslog("PCAP APP: getDateTimeFromFile: "+filePath+"   ended: "+str(datetime.datetime.now()))
     return r
+# return info about file in readable format
 def getReadableFileInfo(fileName, caseName):
     fileID = SQLHelper.getFileID(fileName, caseName)
     info = SQLHelper.getFileInfo(fileID)
@@ -164,19 +175,18 @@ def getReadableFileInfo(fileName, caseName):
     conn.close()
     return [filterContent, s, info[2], info[3], info[4], info[5], fileID]
 
-
+# return database name of file based on filepath
 def getDBNameFromPath(filePath):
     splitPath = filePath.split('/')
     return splitPath[-2]+'/'+splitPath[-1] if splitPath[-2] != "PCAPs" else splitPath[-1]
 
+# update description of file
 def updateFileDescription(filePath, caseName, description):
     fileName = getDBNameFromPath(filePath)
     fileID = SQLHelper.getFileID(fileName, caseName)
-    #if fileID:
     SQLHelper.updateFileDescription(fileID, description)
-    #else:
-    #    syslog.syslog("PCAP APP: ERROR, no fileID with file: " + filePath)
 
+# update information about file
 def updateFile(filePath, caseName, filterID):
     syslog.syslog("PCAP APP: updateFile: "+filePath+" started: "+str(datetime.datetime.now()))
     fileName = getDBNameFromPath(filePath)

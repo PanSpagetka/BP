@@ -9,7 +9,7 @@ from subprocess import CalledProcessError
 
 
 cgitb.enable()
-
+# setting variables
 form = cgi.FieldStorage()
 pagesToRender = "default"
 actions = []
@@ -48,7 +48,6 @@ if 'editFilter' in actions:
 if "applyFilter" in actions:
     start = form['start'].value if form.has_key('start') else ''
     end = form['end'].value if form.has_key('end') else ''
-    syslog.syslog("PCAP APP:  "+start +'    ' + end)
     if form.has_key('filterContent'):
         filteredFileName = Filter.applyTmpFilter(form['filePath'].value, form['filterContent'].value, form['caseName'].value)
         if filteredFileName:
@@ -80,18 +79,10 @@ if "deleteFile" in actions:
 if "editDescription" in actions:
     if form.has_key('Edit'):
         helper.updateFileDescription(form['filePath'].value, form['caseName'].value, form['description'].value)
-        syslog.syslog("PCAP APP: EDIT2")
 
 # generate begining of html
 print "Content-Type: text/html\n\n"
-# generate JS which bootstrap need to work
-#print genBootstrapJS()
 print genBegining('Main')
-'''
-for i in form.keys():
-    print i + ": " + form[i].value + "  "
-print '<br>'
-'''
 
 # begining of render section
 print '<div class="alert alert-'+messageType+'">'+message+'</div>' if message else ""
@@ -100,13 +91,7 @@ print '<div class="col-md-12">'
 print genBreadcrumb(pagesToRender, caseName, fileName)
 print '<div class="col-md-12">\n'
 if "default" in pagesToRender:
-    print '<p> Default page </p>'
-    print '<form method="post"><input type="hidden" name="pagesToRender" value="cases:aa"><input type="submit" value="Apply"></a></form> '
-
-if "testpage" in pagesToRender:
-    print "<p>testpage</p>"
-    cases.render()
-    # cases.addCase('testcasee','desc')
+    genAboutPage()
 
 if "cases" in pagesToRender:
     cases.render()
@@ -139,9 +124,7 @@ if "showGraph" in pagesToRender:
             print '<img width="800" src="'+renderGraph.render(form['caseName'].value,form['filePath'].value, form.getlist('additionalFiles'), type = 'png', start = start, end = end, xtics = xtics)+'">'
     except CalledProcessError:
         print '<div class="alert alert-danger"> <strong>Error!</strong> Rendering graph Error, make sure you use right filter syntax and files contains some data.</div>'
-    #    print '<div class="alert alert-info"> <strong>Info!</strong> Your filter could be also too restricted and didnt leave enough TCP packets to render graph. Try less restrictive filter.'
-    # print '<img width="400" src="renderGraph.py?fileName='+form['filePath'].value+'">'
-    # print '<img width="400" src="cases/case01/PCAPs/tmp/throughput.png">'
+
 
 
 #  generate back button

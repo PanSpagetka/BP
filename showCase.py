@@ -8,7 +8,7 @@ def loadCase(caseName):
     if(caseName in cases):
         case = cases[caseName]
         return case
-
+# return all files, if caseName is set, return files from selected case
 def loadAllFiles(caseName = '*'):
     conn = sqlite3.connect(DATABASE)
     if caseName == '*':
@@ -23,7 +23,7 @@ def loadAllFiles(caseName = '*'):
     conn.close()
     return files
 
-
+# check if there are new, changed or deleted original files in selected case
 def checkOriginFilesConsistency(caseName):
     syslog.syslog("PCAP APP: checkOriginFilesConsistency started: "+str(datetime.datetime.now()))
     originFiles = SQLHelper.loadFiles(caseName, 'origin')
@@ -52,19 +52,19 @@ def checkOriginFilesConsistency(caseName):
 
     syslog.syslog("PCAP APP: checkOriginFilesConsistency   ended: "+str(datetime.datetime.now()))
 
+# check if there are deleted filtered files in selected case
 def checkFilteredFileConsistency(caseName):
     syslog.syslog("PCAP APP: checkFilteredFileConsistency started: "+str(datetime.datetime.now()))
     filteredFiles = SQLHelper.loadFiles(caseName, 'filtered')
     #files in directory
     files = [f for f in os.listdir(CASES_DIR + caseName + PCAP_DIR) if os.path.isfile(os.path.join(CASES_DIR + caseName + PCAP_DIR, f))]
 
-    #newFiles = [file for file in files if file not in filteredFiles]
     deletedFiles = [file for file in filteredFiles if file not in files]
     for file in deletedFiles:
         saveFile.removeFile(caseName, CASES_DIR + caseName + PCAP_DIR + file)
-    #for file in newFiles:
-    #    saveFile.addFile(caseName, file)
     syslog.syslog("PCAP APP: checkFilteredFileConsistency   ended: "+str(datetime.datetime.now()))
+
+# print tables with all PCAP files in case
 def printPCAPs(case):
     #print all pcap files in this case PCAPs directory
     path = CASES_DIR + case.caseName + PCAP_DIR
@@ -73,7 +73,6 @@ def printPCAPs(case):
     filteredFiles = SQLHelper.loadFiles(case.caseName, 'filtered')
     tmpFiles = SQLHelper.loadFiles(case.caseName, 'tmp')
     print '<h2>Available PCAP files</h2>'
-    #print '<button class="btn" data-toggle="collapse" data-target="#originFiles">Collapsible</button>'
     formStr = '<form action="main.py" class="form-horizontal" method="post">'
     formStr += '<a data-toggle="collapse" href="#originFiles"><h3>Original files: ('+helper.readableSizeOfDirectory(CASES_DIR+case.caseName+ORIGIN_DIR)+')</h3></a>' if originFiles else ""
     formStr += '<div id="originFiles" class="collapse">'
@@ -83,11 +82,7 @@ def printPCAPs(case):
     for file in originFiles:
         info = helper.getReadableFileInfo(file,case.caseName)
         formStr += '<tr><th>%s</th><th><div class="radio"><label><input type="radio" value="%s" name="filePath"> <b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (str(info[6]),path + file, file, info[1], info[2], info[3], info[0], info[4], info[5])
-
-        #formStr += '<tr><td><div class="radio">'
-        #formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></tr></div>'
     formStr += '</tbody></table></div>'
-
     formStr += '<a data-toggle="collapse" href="#filteredFiles"><h3>Filtered files: ('+helper.readableSizeOfDirectory(CASES_DIR+case.caseName+PCAP_DIR)+')</h3></a>' if filteredFiles else ""
     formStr += '<div id="filteredFiles" class="collapse">'
     formStr += '<table id="" class="display" cellspacing="0" width="100%">'
@@ -97,25 +92,17 @@ def printPCAPs(case):
         info = helper.getReadableFileInfo(file,case.caseName)
         sourceID = str(SQLHelper.getFileID(info[4],case.caseName)) + '.' if str(SQLHelper.getFileID(info[4],case.caseName)) != 'None' else ''
         formStr += '<tr><th>%s</th><th><div class="radio"><label><input type="radio" value="%s" name="filePath"> <b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (str(info[6]),path + file, file, info[1], info[2], info[3], info[0], sourceID + info[4], info[5])
-        #formStr += '<tr><td><div class="radio">'
-        #formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td></td></tr></div>'
     formStr += '</tbody></table></div>'
     tmpFiles.sort
     if tmpFiles:
         sourceID = str(SQLHelper.getFileID(info[4],case.caseName)) + '.' if str(SQLHelper.getFileID(info[4],case.caseName)) != 'None' else ''
         formStr += '<a data-toggle="collapse" href="#tmpFiles"><h3>Temporary files: ('+helper.readableSizeOfDirectory(CASES_DIR+case.caseName+TMP_DIR)+')</h3></a>'
-        #formStr += '<div id="tmpFiles" class="collapse"><table class = "table table-fixed" style="word-wrap:break-word;">'
-        #formStr += '<thead><tr><th class="col-md-4">Name</th><th class="col-md-1">Size</th><th class="col-md-2">First Packet</th><th class="col-md-2">Last Packet</th><th>Filter</th><th class="col-md-2">Source file</th><th class="col-md-2">Description</th></tr></thead><tbody>'
-
         formStr += '<div id="tmpFiles" class="collapse">'
         formStr += '<table id="" class="display" cellspacing="0" width="100%">'
         formStr += '<thead><tr><th>ID</th><th>Name</th><th>Size</th><th>First Packet</th><th>Last Packet</th><th>Filter</th><th>Source File</th><th>Description</th></tr><tbody>'
         for file in tmpFiles:
             info = helper.getReadableFileInfo(file,case.caseName)
             formStr += '<tr><th>%s</th><th><div class="radio"><label><input type="radio" value="%s" name="filePath"> <b>%s</b></label></div> </th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' % (str(info[6]),path + file, file, info[1], info[2], info[3], info[0], sourceID + info[4], info[5])
-
-            #formStr += '<tr><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;"><div class="radio">'
-            #formStr += '<label><input type="radio" name="filePath" value="' + path + file + '">' + file + '</radio></label></td><td>'+info[1]+'</td><td>'+info[2]+'</td><td>'+info[3]+'</td><td>'+info[0]+'</td><td style="word-wrap: break-word;min-width: 100px;max-width: 300px;">'+info[4]+'</td><td>'+info[5]+'</td></tr></div>'
         formStr += '</tbody></table></div>'
     formStr += '<div class="form-group"><div class="col-md-6">'
     formStr += '<input type="submit" class="btn btn-default pull-right" value="Select File" name="selectFile"/>'
@@ -128,7 +115,7 @@ def printPCAPs(case):
     print formStr
     print '<hr/>'
 
-
+# print case descriptin
 def printCase(case):
     print '<label class="col-md-2">Name:</label>'
     print '<div class="col-md-10"<p>'+case.caseName+'</p></div>'
@@ -147,6 +134,7 @@ def printClearTmpButton(caseName):
     print formStr
     print '</div>'
 
+# print filter form in selected case
 def printFilterForm(case):
     oSize = helper.getDirectorySize(CASES_DIR+case.caseName+ORIGIN_DIR)
     fSize = helper.getDirectorySize(CASES_DIR+case.caseName+PCAP_DIR)
@@ -159,12 +147,8 @@ def printFilterForm(case):
     timeFilter = helper.getTimeFilter(case.caseName)
     print '<h2>Edit inicial filter</h2>'
     formStr = '<form class="form-horizontal" action="main.py" method="post">'
-    #formStr += '<div class="form-group"><label class="col-md-2">Name:</label>'
-    #formStr += '<p class="col-md-10 form-control-static">'+case.caseName+'</p></div>'
     formStr += '<div class="form-group"><label class="col-md-2">Description:</label>'
     formStr += '<p class="col-md-10 form-control-static">'+case.description+'</p></div>'
-    #formStr += '<div class="form-group"><label class="col-md-2">Current filter:</label>'
-    #formStr += '<p class="col-md-10 form-control-static">'+filterContent+'</p></div>'
     formStr += '<input type="hidden" name="actions" value="editFilter">'
     formStr += '<input type="hidden" name="pagesToRender" value="case:saveFile">'
     formStr += '<div class="form-group"><label class="col-md-2">Time window:</label>'
@@ -180,7 +164,6 @@ def printFilterForm(case):
     print formStr
     print '<hr/>'
     print htmlGen.generateProgresBar()
-    #print '<script>$(document).ready(function() {$("#originFiles").DataTable();} );</script>'
 
 def render(caseName):
     checkOriginFilesConsistency(caseName)
@@ -190,69 +173,5 @@ def render(caseName):
     if case:
         print '<h1>'+caseName+'</h1>'
         print '<hr/>'
-        #printCase(case)
         printFilterForm(case)
         printPCAPs(case)
-        #printUploadFileForm(case)
-        #printClearTmpButton(caseName)
-
-
-
-
-
-
-
-
-
-
-'''
-#!/usr/bin/python
-
-import cgi, cgitb, os
-from htmlGen import *
-from Case import *
-from config import *
-
-cgitb.enable()
-
-# generate begining of html
-print "Content-Type: text/html\n\n"
-print genBegining('showCase')
-
-form = cgi.FieldStorage()
-
-# load selected case from db
-if(form.has_key('case')):
-	cases = loadFromFile('Cases.db', mode = 'dic')
-	if(form["case"].value in cases):
-		case = cases[form["case"].value]
-		print case.caseName + case.description
-		print '<br>'
-		#print '<img width="400" src="renderGraph.py?case='+case.caseName+'">'
-
-#print all pcap files in this case PCAPs directory
-path = CASES_DIR + case.caseName + PCAP_DIR
-listDir = os.listdir(path)
-print '<br></br>'
-print '<form action="showPCAPFileDetails.py" method="post"><input type="hidden" name="caseName" value="'+case.caseName+'">'
-
-for record in listDir:
-	if '.pcap' in record.lower():
-		print '<input type="radio" name="filePath" value="' + path + record + '" />' + record + '<br></br>'
-print '<input type="submit" value="SelectFile" />'
-print '</form>'
-
-#upload file form
-print '<br></br>'
-print ' <form enctype="multipart/form-data" action="saveFile.py" method="post"> <input type="hidden" name="caseName" value="'+case.caseName+'"> <p>File: <input type="file" name="filePath"></p><p><input type="submit" value="Upload"></p> </form>'
-
-
-#generate link to cases page
-print genHref(text = 'Back to: cases', link = "cases.py")
-
-# generate end of html
-print genEnd()
-
-
-print ' <form method = "post"> Username:<br> <input type="text" name="username"> <br> Password:<br> <input type="password" name="password"><br><br> <a href = "test.py"> <input type="submit" value="Login"> </a> </form> '
-'''

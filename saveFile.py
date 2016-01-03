@@ -41,6 +41,7 @@ def removeFile(caseName, filePath):
     conn.commit()
     conn.close()
 
+# add file to system, strip data, apply inicial filter
 def addFile(caseName, filePath):
     syslog.syslog("PCAP APP: addFile: "+filePath+" started: "+str(datetime.datetime.now()))
     if not checkIfFileIsPCAP(filePath):
@@ -71,14 +72,12 @@ def addFile(caseName, filePath):
                 dateTimes = helper.getDateTimeFromFile(CASES_DIR + caseName + PCAP_DIR + filteredFileName)
                 fileSize = os.path.getsize(CASES_DIR + caseName + PCAP_DIR + filteredFileName)
                 q = conn.execute("INSERT INTO FILES VALUES (null, ?, \'filtered\', ?, ?, ?, ?, ?, ?, ?)", (filteredFileName, caseID, filterID, fileSize, dateTimes[0], dateTimes[1], sourceFile,'description'))
-                #q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+ dateTimes[1]+"\',\'"+sourceFile+"\')")
                 conn.commit()
             else:
                 f = open(CASES_DIR + caseName + PCAP_DIR + filteredFileName, 'w')
                 f.write("")
                 f.close()
                 q = conn.execute("INSERT INTO FILES VALUES (null, ?,\'filtered\', ?, ?, 0, \'n/a\', \'n/a\', ?,?)",(filteredFileName, caseID, filterID, sourceFile,'description',))
-                #q = conn.execute("INSERT INTO FILES VALUES (null,\'"+filteredFileName+"\',\'filtered\',"+str(caseID)+","+str(filterID)+",0,\'n/a\',\'n/a\',\'"+sourceFile+"\')")
                 conn.commit()
             conn.close()
 
@@ -92,7 +91,6 @@ def addFile(caseName, filePath):
         conn = sqlite3.connect(DATABASE)
         conn.execute('pragma foreign_keys=ON')
         conn.execute("INSERT INTO FILES VALUES (null, ?, ?, ?, null, ?, ?, ?, ?, ?)", ("origin/"+fileName, 'origin', caseID, fileSize, dateTimes[0], dateTimes[1], 'n/a','description',))
-        #conn.execute("INSERT INTO FILES VALUES (null,\'"+"origin/"+fileName+"\',\'origin\',"+str(caseID)+",null"+","+str(fileSize)+",\'"+dateTimes[0]+"\',\'"+dateTimes[1]+"\',\'n/a\')")
         conn.commit()
         conn.close()
     syslog.syslog("PCAP APP: addFile: "+filePath+"   ended: "+str(datetime.datetime.now()))
@@ -116,68 +114,3 @@ def saveFile(caseName, fileItem):
 def render(caseName):
     printUploadFileForm(caseName)
     #print saveFile(caseName, fileItem)
-
-'''
-
-#!/usr/bin/python
-
-import cgi, os
-import cgitb; cgitb.enable()
-from config import *
-from Filter import *
-from htmlGen import *
-form = cgi.FieldStorage()
-
-# Get filename here.
-fileItem = form['filename']
-
-#generate begining of html
-print "Content-Type: text/html\n\n"
-print genBegining('File upload')
-
-# Test if the file was uploaded
-if fileItem.filename:
-   # strip leading path from file name to avoid
-   # directory traversal attacks
-   fn = os.path.basename(fileItem.filename)
-   if form.has_key('casename'):
-     filePath = CASES_DIR + form['casename'].value + PCAP_DIR + fn
-     dirPath = CASES_DIR + form['casename'].value + PCAP_DIR
-
-     #save file
-     f = open(filePath, 'wb')
-     f.write(fileItem.file.read())
-     f.close()
-
-     filterfilePath = dirPath + FILTER_FILE_NAME
-     #check if filter exist and apply it on uploaded file
-     if os.path.isfile(filterfilePath):
-       #load filter from file
-       filterFile = open(filterfilePath,'r')
-       filterContent = filterFile.read()
-       filterFile.close()
-
-       #remove whitespaces from end of file
-       filterContent = filterContent.rstrip()
-       #apply filter on file
-       applyFilterOnFile(filePath, filterContent)
-
-     #create filter file
-     else:
-        filterFile = open(filterfilePath,'w')
-        filterFile.write('')
-        filterFile.close()
-
-
-     message = 'The file "' + fn + '" was uploaded successfully'
-
-
-else:
-   message = 'No file was uploaded'
-
-
-print message
-#generate link bask to cases page
-print genHref(text = 'Back to: ' + form['casename'].value, link = "showCase.py?case=" +form['casename'].value)
-print genEnd()
-'''
